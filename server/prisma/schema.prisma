@@ -35,12 +35,14 @@ enum AttendanceStatus {
 ///   - emp_id for TEACHER
 ///   - mobile number for PARENT
 model User {
-  id              Int       @id @default(autoincrement())
-  role            Role
-  auth_identifier String    @unique
-  password_hash   String?   // nullable — parents authenticate via OTP
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  id                 Int       @id @default(autoincrement())
+  role               Role
+  auth_identifier    String    @unique
+  password_hash      String?   // nullable — parents authenticate via OTP (now password)
+  mustChangePassword Boolean   @default(true) @map("must_change_password")
+  resetCode          String?   @unique @map("reset_code")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
 
   // Relations
   teacher  Teacher?   // A TEACHER user has exactly one Teacher profile
@@ -74,6 +76,7 @@ model Teacher {
   empId              String              @unique @map("emp_id")
   phone              String?             @unique @map("phone_number")
   mustChangePassword Boolean             @default(true) @map("must_change_password")
+  resetCode          String?             @unique @map("reset_code")
 
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -81,6 +84,7 @@ model Teacher {
   user        User                @relation(fields: [userId], references: [id])
   assignments TeacherAssignment[]
   marks       Mark[]
+  homeworks   Homework[]
 
   @@map("teachers")
 }
@@ -93,6 +97,7 @@ model Subject {
   // Relations
   assignments TeacherAssignment[]
   marks       Mark[]
+  homeworks   Homework[]
 
   @@map("subjects")
 }
@@ -111,14 +116,15 @@ model Class {
 /// Maps a teacher to a class + subject combination.
 /// A teacher can teach multiple subjects across multiple classes.
 model TeacherAssignment {
-  id        Int    @id @default(autoincrement())
-  teacherId Int    @map("teacher_id")
-  className String @map("class_name")
-  subjectId Int    @map("subject_id")
+  id        Int      @id @default(autoincrement())
+  teacherId Int      @map("teacher_id")
+  className String   @map("class_name")
+  subjectId Int?     @map("subject_id")
+  role      String   @default("SUBJECT_TEACHER") @map("role") // "CLASS_TEACHER" or "SUBJECT_TEACHER"
 
   // Relations
-  teacher Teacher @relation(fields: [teacherId], references: [id])
-  subject Subject @relation(fields: [subjectId], references: [id])
+  teacher Teacher  @relation(fields: [teacherId], references: [id])
+  subject Subject? @relation(fields: [subjectId], references: [id])
 
   // A teacher cannot be assigned the same subject in the same class twice
   @@unique([teacherId, className, subjectId])
@@ -149,6 +155,8 @@ model Mark {
   score     Float
   maxScore  Float  @default(100) @map("max_score")
   examName  String @map("exam_name")
+  internalScore Float? @map("internal_score")
+  theoryScore   Float? @map("theory_score")
 
   // Relations
   student Student @relation(fields: [studentId], references: [id])
@@ -176,4 +184,21 @@ model Announcement {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("announcements")
+}
+
+model Homework {
+  id          Int      @id @default(autoincrement())
+  className   String   @map("class_name")
+  subjectId   Int      @map("subject_id")
+  teacherId   Int      @map("teacher_id")
+  title       String
+  description String   @db.Text
+  dueDate     DateTime @map("due_date")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  subject Subject @relation(fields: [subjectId], references: [id])
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+
+  @@map("homework")
 }

@@ -98,8 +98,13 @@ export default function StudentsPage() {
         await apiClient.put(`/admin/students/${editingStudent.id}`, payload);
         showToast("Student updated successfully", "success");
       } else {
-        await apiClient.post("/admin/students", payload);
-        showToast("Student added successfully", "success");
+        const newStudent = await apiClient.post("/admin/students", payload);
+        const resetCode = newStudent?.parent?.resetCode;
+        if (resetCode) {
+          showToast(`Student added. Parent Reset Code: ${resetCode}`, "success");
+        } else {
+          showToast("Student added successfully", "success");
+        }
       }
       setModalOpen(false);
       fetchStudents();
@@ -150,6 +155,15 @@ export default function StudentsPage() {
       render: (row) => (
         <span className="text-slate-600 text-sm font-mono">
           {row.parentMobile || row.parent_mobile || "—"}
+        </span>
+      ),
+    },
+    {
+      key: "parentResetCode",
+      label: "Parent Reset Code",
+      render: (row) => (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 text-xs font-semibold font-mono">
+          {row.parent?.resetCode || "—"}
         </span>
       ),
     },

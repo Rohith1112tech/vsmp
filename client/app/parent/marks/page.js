@@ -4,22 +4,10 @@ import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { apiClient } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import { useSearchParams } from "next/navigation";
+import { getGradeLetter, getGradeColor } from "@/lib/gradeUtils";
 
-function getScoreColor(score) {
-  if (score >= 80) return { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", bar: "bg-emerald-500" };
-  if (score >= 60) return { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200", bar: "bg-blue-500" };
-  if (score >= 40) return { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", bar: "bg-amber-500" };
-  return { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", bar: "bg-red-500" };
-}
-
-function getGradeLetter(score) {
-  if (score >= 90) return "A+";
-  if (score >= 80) return "A";
-  if (score >= 70) return "B+";
-  if (score >= 60) return "B";
-  if (score >= 50) return "C";
-  if (score >= 40) return "D";
-  return "F";
+function getScoreColor(score, maxScore = 100) {
+  return getGradeColor(getGradeLetter(score, maxScore));
 }
 
 function MarksContent() {
@@ -398,12 +386,13 @@ function MarksContent() {
                                 <div className="space-y-2">
                                   {subj.marks.map((m, mIdx) => {
                                     const sc = Number(m.score) || 0;
-                                    const mColors = getScoreColor(sc);
+                                    const maxSc = m.maxScore || 100;
+                                    const mColors = getScoreColor(sc, maxSc);
                                     return (
                                       <div key={mIdx} className="flex items-center justify-between">
                                         <span className="text-sm text-slate-700">{m.examName || m.exam_name}</span>
                                         <span className={`text-sm font-semibold px-2.5 py-0.5 rounded-lg ${mColors.bg} ${mColors.text} border ${mColors.border}`}>
-                                          {sc} / {m.maxScore || 100}
+                                          {sc} / {maxSc} ({getGradeLetter(sc, maxSc)})
                                         </span>
                                       </div>
                                     );
@@ -472,14 +461,15 @@ function MarksContent() {
                       <tbody className="divide-y divide-slate-100">
                         {marks?.map((mark, idx) => {
                           const sc = Number(mark.score) || 0;
-                          const colors = getScoreColor(sc);
+                          const maxSc = mark.maxScore || 100;
+                          const colors = getScoreColor(sc, maxSc);
                           return (
                             <tr key={idx} className="hover:bg-slate-50 transition-colors">
                               <td className="px-6 py-3.5 text-sm font-medium text-slate-900">{mark.subject?.name || mark.subject}</td>
                               <td className="px-6 py-3.5 text-sm text-slate-600">{mark.examName || mark.exam_name}</td>
                               <td className="px-6 py-3.5 text-center">
                                 <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold ${colors.bg} ${colors.text} border ${colors.border}`}>
-                                  {sc} / {mark.maxScore || 100}
+                                  {sc} / {maxSc} ({getGradeLetter(sc, maxSc)})
                                 </span>
                               </td>
                               <td className="px-6 py-3.5 text-sm text-slate-600">{mark.teacher?.name || mark.teacher || "—"}</td>
@@ -494,13 +484,14 @@ function MarksContent() {
                   <div className="md:hidden divide-y divide-slate-100">
                     {marks?.map((mark, idx) => {
                       const sc = Number(mark.score) || 0;
-                      const colors = getScoreColor(sc);
+                      const maxSc = mark.maxScore || 100;
+                      const colors = getScoreColor(sc, maxSc);
                       return (
                         <div key={idx} className="p-4 hover:bg-slate-50 transition-colors">
                           <div className="flex items-center justify-between mb-2">
                             <h4 className="text-sm font-semibold text-slate-900">{mark.subject?.name || mark.subject}</h4>
                             <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold ${colors.bg} ${colors.text} border ${colors.border}`}>
-                              {sc} / {mark.maxScore || 100}
+                              {sc} / {maxSc} ({getGradeLetter(sc, maxSc)})
                             </span>
                           </div>
                           <div className="flex items-center gap-3 text-xs text-slate-500">

@@ -22,6 +22,28 @@ import bcrypt from "bcryptjs";
 const router = Router();
 const prisma = new PrismaClient();
 
+// ─── Roman numeral class sorting ───────────────────────────
+const ROMAN_MAP = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+function romanToInt(str) {
+  let total = 0;
+  for (let i = 0; i < str.length; i++) {
+    const curr = ROMAN_MAP[str[i]] || 0;
+    const next = ROMAN_MAP[str[i + 1]] || 0;
+    total += curr < next ? -curr : curr;
+  }
+  return total;
+}
+function compareClassNames(a, b) {
+  const partsA = a.split("-");
+  const partsB = b.split("-");
+  const numA = romanToInt(partsA[0]);
+  const numB = romanToInt(partsB[0]);
+  if (numA !== numB) return numA - numB;
+  const suffA = partsA.slice(1).join("-");
+  const suffB = partsB.slice(1).join("-");
+  return suffA.localeCompare(suffB);
+}
+
 // ─── Helper Functions ───────────────────────────────────────
 
 /**
@@ -61,6 +83,17 @@ async function verifyTeacherAssignment(teacherId, className, subjectId = null) {
   return !!assignment;
 }
 
+async function verifyIsClassTeacher(teacherId, className) {
+  const assignment = await prisma.teacherAssignment.findFirst({
+    where: {
+      teacherId,
+      className,
+      role: "CLASS_TEACHER",
+    },
+  });
+  return !!assignment;
+}
+
 // ─── 1. GET /dashboard ──────────────────────────────────────
 
 /**
@@ -90,10 +123,13 @@ router.get("/dashboard", async (req, res) => {
     assignments: teacher.assignments.map((a) => ({
       id: a.id,
       className: a.className,
-      subject: {
-        id: a.subject.id,
-        name: a.subject.name,
-      },
+      role: a.role,
+      subject: a.subject
+        ? {
+            id: a.subject.id,
+            name: a.subject.name,
+          }
+        : null,
     })),
   });
 });
@@ -115,9 +151,15 @@ router.get("/my-classes", async (req, res) => {
     return res.status(404).json({ error: "Teacher profile not found" });
   }
 
+  const { role } = req.query;
+
+  const filteredAssignments = role
+    ? teacher.assignments.filter((a) => a.role === role)
+    : teacher.assignments;
+
   // Extract unique class names from assignments
-  const classSet = new Set(teacher.assignments.map((a) => a.className));
-  const classes = [...classSet].sort();
+  const classSet = new Set(filteredAssignments.map((a) => a.className));
+  const classes = [...classSet].sort(compareClassNames);
 
   res.json({ classes });
 });
@@ -151,7 +193,8 @@ router.get("/my-subjects", async (req, res) => {
     }
   }
 
-  res.json({ subjects: [...subjectMap.values()] });
+  const subjects = [...subjectMap.values()].sort((a, b) => a.name.localeCompare(b.name));
+  res.json({ subjects });
 });
 
 // ─── 4. GET /students ───────────────────────────────────────
@@ -189,11 +232,15 @@ router.get("/students", async (req, res) => {
 
   const students = await prisma.student.findMany({
     where: { className: class_name },
-    select: {
-      id: true,
-      name: true,
-      className: true,
-      parentMobile: true,
+    include: {
+      parent: {
+        select: {
+          id: true,
+          auth_identifier: true,
+          role: true,
+          resetCode: true,
+        },
+      },
     },
     orderBy: { name: "asc" },
   });
@@ -234,10 +281,10 @@ router.get("/attendance", async (req, res) => {
     return res.status(404).json({ error: "Teacher profile not found" });
   }
 
-  // Authorization: teacher must be assigned to this class
-  const isAssigned = await verifyTeacherAssignment(teacher.id, class_name);
-  if (!isAssigned) {
-    return res.status(403).json({ error: "You are not assigned to this class" });
+  // Authorization: teacher must be the designated Class Teacher of this class
+  const isClassTeacher = await verifyIsClassTeacher(teacher.id, class_name);
+  if (!isClassTeacher) {
+    return res.status(403).json({ error: "Only the designated Class Teacher can manage attendance for this class" });
   }
 
   // Parse the date string into a UTC Date object (midnight)
@@ -331,10 +378,10 @@ router.post("/attendance", async (req, res) => {
     return res.status(404).json({ error: "Teacher profile not found" });
   }
 
-  // Authorization: teacher must be assigned to this class
-  const isAssigned = await verifyTeacherAssignment(teacher.id, class_name);
-  if (!isAssigned) {
-    return res.status(403).json({ error: "You are not assigned to this class" });
+  // Authorization: teacher must be the designated Class Teacher of this class
+  const isClassTeacher = await verifyIsClassTeacher(teacher.id, class_name);
+  if (!isClassTeacher) {
+    return res.status(403).json({ error: "Only the designated Class Teacher can manage attendance for this class" });
   }
 
   // Validate that all student_ids belong to the given class
@@ -451,7 +498,7 @@ router.get("/marks", async (req, res) => {
           subjectId: subjectIdInt,
           examName: exam_name,
         },
-        select: { id: true, score: true, examName: true, maxScore: true },
+        select: { id: true, score: true, examName: true, maxScore: true, internalScore: true, theoryScore: true },
       },
     },
     orderBy: { name: "asc" },
@@ -512,6 +559,9 @@ router.post("/marks", async (req, res) => {
     return res.status(400).json({ error: "subject_id must be a valid integer" });
   }
 
+  const examNameTrimmed = exam_name.trim();
+  const isHYOrAnnual = ["half yearly", "half-yearly", "half early", "half-early", "annual", "anual"].includes(examNameTrimmed.toLowerCase());
+
   const maxScoreVal = total_mark !== undefined ? parseFloat(total_mark) : 100;
   if (isNaN(maxScoreVal) || maxScoreVal <= 0) {
     return res.status(400).json({ error: "total_mark must be a positive number" });
@@ -522,15 +572,34 @@ router.post("/marks", async (req, res) => {
     if (!entry.student_id) {
       return res.status(400).json({ error: "Each mark entry must have a student_id" });
     }
-    if (typeof entry.score !== "number" || isNaN(entry.score)) {
-      return res.status(400).json({
-        error: `Invalid score for student_id ${entry.student_id}. Score must be a number`,
-      });
-    }
-    if (entry.score < 0 || entry.score > maxScoreVal) {
-      return res.status(400).json({
-        error: `Score ${entry.score} for student_id ${entry.student_id} is out of range. Must be between 0 and ${maxScoreVal}`,
-      });
+    if (isHYOrAnnual) {
+      if (entry.internalScore !== undefined && entry.internalScore !== null && entry.internalScore !== "") {
+        const val = parseFloat(entry.internalScore);
+        if (isNaN(val) || val < 0 || val > 20) {
+          return res.status(400).json({
+            error: `Invalid internal score for student_id ${entry.student_id}. Must be a number between 0 and 20.`,
+          });
+        }
+      }
+      if (entry.theoryScore !== undefined && entry.theoryScore !== null && entry.theoryScore !== "") {
+        const val = parseFloat(entry.theoryScore);
+        if (isNaN(val) || val < 0 || val > 80) {
+          return res.status(400).json({
+            error: `Invalid theory score for student_id ${entry.student_id}. Must be a number between 0 and 80.`,
+          });
+        }
+      }
+    } else {
+      if (typeof entry.score !== "number" || isNaN(entry.score)) {
+        return res.status(400).json({
+          error: `Invalid score for student_id ${entry.student_id}. Score must be a number`,
+        });
+      }
+      if (entry.score < 0 || entry.score > maxScoreVal) {
+        return res.status(400).json({
+          error: `Score ${entry.score} for student_id ${entry.student_id} is out of range. Must be between 0 and ${maxScoreVal}`,
+        });
+      }
     }
   }
 
@@ -572,30 +641,48 @@ router.post("/marks", async (req, res) => {
   }
 
   // ── Upsert marks in a transaction ───────────────────────
-  const upserts = marks.map((entry) =>
-    prisma.mark.upsert({
+  const upserts = marks.map((entry) => {
+    let finalScore = 0;
+    let finalMaxScore = maxScoreVal;
+    let internalScoreVal = null;
+    let theoryScoreVal = null;
+
+    if (isHYOrAnnual) {
+      internalScoreVal = entry.internalScore !== undefined && entry.internalScore !== null && entry.internalScore !== "" ? parseFloat(entry.internalScore) : null;
+      theoryScoreVal = entry.theoryScore !== undefined && entry.theoryScore !== null && entry.theoryScore !== "" ? parseFloat(entry.theoryScore) : null;
+      finalScore = (internalScoreVal || 0) + (theoryScoreVal || 0);
+      finalMaxScore = 100;
+    } else {
+      finalScore = entry.score;
+    }
+
+    return prisma.mark.upsert({
       where: {
         studentId_subjectId_examName: {
           studentId: entry.student_id,
           subjectId: subjectIdInt,
-          examName: exam_name.trim(),
+          examName: examNameTrimmed,
         },
       },
       update: {
-        score: entry.score,
-        maxScore: maxScoreVal,
+        score: finalScore,
+        maxScore: finalMaxScore,
+        internalScore: internalScoreVal,
+        theoryScore: theoryScoreVal,
         teacherId: teacher.id, // Update teacher in case of re-assignment
       },
       create: {
         studentId: entry.student_id,
         subjectId: subjectIdInt,
         teacherId: teacher.id,
-        score: entry.score,
-        maxScore: maxScoreVal,
-        examName: exam_name.trim(),
+        score: finalScore,
+        maxScore: finalMaxScore,
+        examName: examNameTrimmed,
+        internalScore: internalScoreVal,
+        theoryScore: theoryScoreVal,
       },
-    })
-  );
+    });
+  });
 
   await prisma.$transaction(upserts);
 
@@ -737,6 +824,413 @@ router.get("/announcements", async (_req, res) => {
   } catch (error) {
     console.error("Teacher fetch announcements error:", error);
     res.status(500).json({ error: "Failed to fetch announcements" });
+  }
+});
+
+/**
+ * POST /api/teacher/announcements
+ * Create an announcement targeted to PARENT.
+ * Body: { title, content }
+ */
+router.post("/announcements", async (req, res) => {
+  try {
+    const { title, content } = req.body;
+
+    if (!title || !content) {
+      return res.status(400).json({ error: "title and content are required" });
+    }
+
+    const announcement = await prisma.announcement.create({
+      data: {
+        title,
+        content,
+        target: "PARENT",
+      },
+    });
+
+    res.status(201).json(announcement);
+  } catch (error) {
+    console.error("Teacher create announcement error:", error);
+    res.status(500).json({ error: "Failed to create announcement" });
+  }
+});
+
+/**
+ * GET /api/teacher/homework
+ * Fetch all homework records posted by this teacher.
+ */
+router.get("/homework", async (req, res) => {
+  try {
+    const teacher = await getTeacherByEmpId(req.user.auth_identifier);
+    if (!teacher) {
+      return res.status(404).json({ error: "Teacher profile not found" });
+    }
+
+    const homeworks = await prisma.homework.findMany({
+      where: { teacherId: teacher.id },
+      include: {
+        subject: {
+          select: { id: true, name: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json(homeworks);
+  } catch (error) {
+    console.error("Fetch teacher homework error:", error);
+    res.status(500).json({ error: "Failed to fetch homework" });
+  }
+});
+
+/**
+ * POST /api/teacher/homework
+ * Create a new homework record.
+ * Body: { className, subjectId, title, description, dueDate }
+ */
+router.post("/homework", async (req, res) => {
+  try {
+    const { className, subjectId, title, description, dueDate } = req.body;
+
+    if (!className || !subjectId || !title || !description || !dueDate) {
+      return res.status(400).json({ error: "className, subjectId, title, description, and dueDate are required" });
+    }
+
+    const teacher = await getTeacherByEmpId(req.user.auth_identifier);
+    if (!teacher) {
+      return res.status(404).json({ error: "Teacher profile not found" });
+    }
+
+    const subjectIdInt = parseInt(subjectId, 10);
+    if (isNaN(subjectIdInt)) {
+      return res.status(400).json({ error: "subjectId must be a valid integer" });
+    }
+
+    // Verify teacher assignment for that class & subject
+    const isAssigned = await verifyTeacherAssignment(teacher.id, className, subjectIdInt);
+    if (!isAssigned) {
+      return res.status(403).json({ error: "You are not assigned to this class and subject combination" });
+    }
+
+    const homework = await prisma.homework.create({
+      data: {
+        className,
+        subjectId: subjectIdInt,
+        teacherId: teacher.id,
+        title,
+        description,
+        dueDate: new Date(dueDate),
+      },
+    });
+
+    res.status(201).json(homework);
+  } catch (error) {
+    console.error("Create homework error:", error);
+    res.status(500).json({ error: "Failed to create homework" });
+  }
+});
+
+/**
+ * PUT /api/teacher/homework/:id
+ * Edit an existing homework record.
+ * Body: { className, subjectId, title, description, dueDate }
+ */
+router.put("/homework/:id", async (req, res) => {
+  try {
+    const homeworkId = parseInt(req.params.id, 10);
+    if (isNaN(homeworkId)) {
+      return res.status(400).json({ error: "Invalid homework ID" });
+    }
+
+    const { className, subjectId, title, description, dueDate } = req.body;
+    if (!className || !subjectId || !title || !description || !dueDate) {
+      return res.status(400).json({ error: "className, subjectId, title, description, and dueDate are required" });
+    }
+
+    const teacher = await getTeacherByEmpId(req.user.auth_identifier);
+    if (!teacher) {
+      return res.status(404).json({ error: "Teacher profile not found" });
+    }
+
+    // Verify homework exists and belongs to teacher
+    const existingHw = await prisma.homework.findUnique({
+      where: { id: homeworkId }
+    });
+
+    if (!existingHw) {
+      return res.status(404).json({ error: "Homework record not found" });
+    }
+
+    if (existingHw.teacherId !== teacher.id) {
+      return res.status(403).json({ error: "You can only edit your own homework records" });
+    }
+
+    const subjectIdInt = parseInt(subjectId, 10);
+    if (isNaN(subjectIdInt)) {
+      return res.status(400).json({ error: "subjectId must be a valid integer" });
+    }
+
+    // Verify assignment for that class & subject
+    const isAssigned = await verifyTeacherAssignment(teacher.id, className, subjectIdInt);
+    if (!isAssigned) {
+      return res.status(403).json({ error: "You are not assigned to this class and subject combination" });
+    }
+
+    const updatedHw = await prisma.homework.update({
+      where: { id: homeworkId },
+      data: {
+        className,
+        subjectId: subjectIdInt,
+        title,
+        description,
+        dueDate: new Date(dueDate),
+      },
+    });
+
+    res.json(updatedHw);
+  } catch (error) {
+    console.error("Update homework error:", error);
+    res.status(500).json({ error: "Failed to update homework" });
+  }
+});
+
+/**
+ * DELETE /api/teacher/homework/:id
+ * Delete a homework record.
+ */
+router.delete("/homework/:id", async (req, res) => {
+  try {
+    const homeworkId = parseInt(req.params.id, 10);
+    if (isNaN(homeworkId)) {
+      return res.status(400).json({ error: "Invalid homework ID" });
+    }
+
+    const teacher = await getTeacherByEmpId(req.user.auth_identifier);
+    if (!teacher) {
+      return res.status(404).json({ error: "Teacher profile not found" });
+    }
+
+    // Verify homework exists and belongs to teacher
+    const existingHw = await prisma.homework.findUnique({
+      where: { id: homeworkId }
+    });
+
+    if (!existingHw) {
+      return res.status(404).json({ error: "Homework record not found" });
+    }
+
+    if (existingHw.teacherId !== teacher.id) {
+      return res.status(403).json({ error: "You can only delete your own homework records" });
+    }
+
+    await prisma.homework.delete({
+      where: { id: homeworkId }
+    });
+
+    res.json({ message: "Homework record deleted successfully" });
+  } catch (error) {
+    console.error("Delete homework error:", error);
+    res.status(500).json({ error: "Failed to delete homework" });
+  }
+});
+
+function generateResetCode() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+async function getOrCreateParentUser(parent_mobile) {
+  let parentUser = await prisma.user.findUnique({
+    where: { auth_identifier: parent_mobile },
+  });
+
+  if (!parentUser) {
+    const defaultPassword = "parent" + parent_mobile.slice(-4);
+    const passwordHash = await bcrypt.hash(defaultPassword, 10);
+
+    let resetCode = generateResetCode();
+    let exists = await prisma.user.findFirst({ where: { resetCode } });
+    while (exists) {
+      resetCode = generateResetCode();
+      exists = await prisma.user.findFirst({ where: { resetCode } });
+    }
+
+    parentUser = await prisma.user.create({
+      data: {
+        role: "PARENT",
+        auth_identifier: parent_mobile,
+        password_hash: passwordHash,
+        mustChangePassword: true,
+        resetCode,
+      },
+    });
+  }
+  return parentUser;
+}
+
+/**
+ * POST /api/teacher/students
+ * Adds a new student to a class. Only the designated Class Teacher
+ * of that class is authorized to perform this operation.
+ */
+router.post("/students", async (req, res) => {
+  try {
+    const { name, class_name, parent_mobile } = req.body;
+
+    if (!name || !class_name || !parent_mobile) {
+      return res
+        .status(400)
+        .json({ error: "name, class_name, and parent_mobile are required" });
+    }
+
+    const teacher = await getTeacherByEmpId(req.user.auth_identifier);
+    if (!teacher) {
+      return res.status(404).json({ error: "Teacher profile not found" });
+    }
+
+    // Verify if the teacher is the designated Class Teacher of the requested class
+    const isClassTeacher = await verifyIsClassTeacher(teacher.id, class_name);
+    if (!isClassTeacher) {
+      return res.status(403).json({
+        error: "Only the designated Class Teacher can add students to this class",
+      });
+    }
+
+    // Ensure a PARENT user exists for this mobile number
+    const parentUser = await getOrCreateParentUser(parent_mobile);
+    if (parentUser.role !== "PARENT") {
+      return res.status(409).json({
+        error: `The identifier "${parent_mobile}" belongs to a ${parentUser.role} user, not a PARENT`,
+      });
+    }
+
+    const student = await prisma.student.create({
+      data: {
+        name,
+        className: class_name,
+        parentMobile: parent_mobile,
+      },
+      include: {
+        parent: {
+          select: {
+            id: true,
+            auth_identifier: true,
+            role: true,
+            resetCode: true,
+          },
+        },
+      },
+    });
+
+    res.status(201).json({
+      message: "Student added successfully",
+      student,
+    });
+  } catch (error) {
+    console.error("Add student by teacher error:", error);
+    res.status(500).json({ error: "Failed to add student" });
+  }
+});
+
+/**
+ * GET /api/teacher/progress-card
+ *
+ * Fetches progress card marks for a student. Only accessible by the Class Teacher of that class.
+ * Works only for Half Yearly and Annual exams.
+ *
+ * Query params:
+ *   - student_id  (required): ID of the student
+ *   - exam_name   (required): Exam name (must be Half Yearly / Annual)
+ */
+router.get("/progress-card", async (req, res) => {
+  try {
+    const { student_id, exam_name } = req.query;
+
+    if (!student_id || !exam_name) {
+      return res.status(400).json({ error: "student_id and exam_name query parameters are required" });
+    }
+
+    const studentIdInt = parseInt(student_id, 10);
+    if (isNaN(studentIdInt)) {
+      return res.status(400).json({ error: "student_id must be a valid integer" });
+    }
+
+    const examNameTrimmed = exam_name.trim();
+    const isHYOrAnnual = ["half yearly", "half-yearly", "half early", "half-early", "annual", "anual"].includes(examNameTrimmed.toLowerCase());
+
+    if (!isHYOrAnnual) {
+      return res.status(400).json({ error: "Progress cards are only available for Half Yearly and Annual exams" });
+    }
+
+    const teacher = await getTeacherByEmpId(req.user.auth_identifier);
+    if (!teacher) {
+      return res.status(404).json({ error: "Teacher profile not found" });
+    }
+
+    const student = await prisma.student.findUnique({
+      where: { id: studentIdInt },
+      select: { id: true, name: true, className: true },
+    });
+
+    if (!student) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    // Verify if the teacher is the designated Class Teacher of the student's class
+    const isClassTeacher = await verifyIsClassTeacher(teacher.id, student.className);
+    if (!isClassTeacher) {
+      return res.status(403).json({
+        error: "Access denied. Only the designated Class Teacher of this class can view progress cards.",
+      });
+    }
+
+    // Get all subjects taught in this class
+    const assignments = await prisma.teacherAssignment.findMany({
+      where: { className: student.className },
+      include: { subject: true },
+    });
+
+    const subjectMap = {};
+    assignments.forEach((a) => {
+      if (a.subject) {
+        subjectMap[a.subject.id] = a.subject;
+      }
+    });
+    const subjects = Object.values(subjectMap);
+
+    // Fetch all marks for this student and filter by exam name (case-insensitively) in JS
+    const studentMarks = await prisma.mark.findMany({
+      where: { studentId: studentIdInt },
+    });
+
+    const marksFiltered = studentMarks.filter(
+      (m) => m.examName.trim().toLowerCase() === examNameTrimmed.toLowerCase()
+    );
+
+    const marks = subjects.map((subj) => {
+      const mark = marksFiltered.find((m) => m.subjectId === subj.id);
+      return {
+        subjectId: subj.id,
+        subjectName: subj.name,
+        internalScore: mark ? mark.internalScore : null,
+        theoryScore: mark ? mark.theoryScore : null,
+        score: mark ? mark.score : null,
+        maxScore: mark ? mark.maxScore : 100,
+      };
+    });
+
+    res.json({
+      student,
+      examName: examNameTrimmed,
+      marks,
+    });
+  } catch (error) {
+    console.error("Get progress card error:", error);
+    res.status(500).json({ error: "Failed to load progress card" });
   }
 });
 

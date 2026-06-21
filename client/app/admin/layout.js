@@ -11,9 +11,10 @@ import { useToast } from "@/components/ui/Toast";
 
 const NAV_ITEMS = [
   { label: "Dashboard",       href: "/admin/dashboard",   icon: "📊" },
-  { label: "Teacher Section", href: "/admin/teachers",    icon: "👩" },
+  { label: "Teachers",        href: "/admin/teachers",    icon: "👩" },
+  { label: "Assign",          href: "/admin/assign",      icon: "📋" },
   { label: "Students",        href: "/admin/students",    icon: "🎒" },
-  { label: "Student Record",  href: "/admin/student-record", icon: "📝" },
+  { label: "Record",  href: "/admin/student-record", icon: "📝" },
   { label: "Announcements",   href: "/admin/announcements", icon: "📢" },
   { label: "Classes",         href: "/admin/classes",     icon: "👥" },
   { label: "Subjects",        href: "/admin/subjects",    icon: "📖" },
@@ -40,6 +41,39 @@ function AdminShell({ children }) {
     setShowPassword(false);
     setSettingsModalOpen(true);
   }
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      const form = e.target.form;
+      if (!form) return;
+      
+      const index = Array.prototype.indexOf.call(form.elements, e.target);
+      if (index === -1) return;
+      
+      let nextIndex = index + 1;
+      while (nextIndex < form.elements.length) {
+        const nextEl = form.elements[nextIndex];
+        if (
+          nextEl &&
+          !nextEl.disabled &&
+          nextEl.type !== "hidden" &&
+          (nextEl.tagName === "INPUT" || nextEl.tagName === "BUTTON")
+        ) {
+          if (nextEl.type === "submit") {
+            return;
+          }
+          if (nextEl.type === "button" && nextEl.className.includes("absolute")) {
+            nextIndex++;
+            continue;
+          }
+          e.preventDefault();
+          nextEl.focus();
+          return;
+        }
+        nextIndex++;
+      }
+    }
+  };
 
   async function handleSaveSettings(e) {
     e.preventDefault();
@@ -83,7 +117,7 @@ function AdminShell({ children }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-blue-900 flex flex-col flex-shrink-0 transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-blue-900 flex flex-col flex-shrink-0 transition-transform duration-300 lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -105,7 +139,7 @@ function AdminShell({ children }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
@@ -161,7 +195,7 @@ function AdminShell({ children }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto min-h-screen">
+      <main className="flex-1 lg:pl-64 min-h-screen">
         {/* Mobile header */}
         <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3">
           <button
@@ -197,9 +231,10 @@ function AdminShell({ children }) {
             <input
               type="email"
               required
-              placeholder="admin@school.com"
+              placeholder=""
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             />
           </div>
@@ -211,9 +246,10 @@ function AdminShell({ children }) {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
+                placeholder=""
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="w-full px-4 pr-11 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               />
               <button
@@ -246,9 +282,10 @@ function AdminShell({ children }) {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
+                placeholder=""
                 value={confirmPasswordInput}
                 onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="w-full px-4 pr-11 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               />
               <button

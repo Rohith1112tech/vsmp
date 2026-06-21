@@ -41,10 +41,10 @@ export async function login(req, res) {
     // Convert incoming role to uppercase to match DB constraints strictly
     const upperRole = role.toUpperCase();
 
-    if (!["ADMIN", "TEACHER"].includes(upperRole)) {
+    if (!["ADMIN", "TEACHER", "PARENT"].includes(upperRole)) {
       return res
         .status(400)
-        .json({ error: "This endpoint supports ADMIN and TEACHER roles only. Parents should use /send-otp." });
+        .json({ error: "Invalid role specified." });
     }
 
     // ── Find the user ──
@@ -77,6 +77,10 @@ export async function login(req, res) {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
+    const mustChangePassword = user.role === "PARENT"
+      ? user.mustChangePassword
+      : (user.teacher ? user.teacher.mustChangePassword : false);
+
     return res.json({
       accessToken,
       refreshToken,
@@ -84,7 +88,7 @@ export async function login(req, res) {
         id: user.id,
         role: user.role,
         auth_identifier: user.auth_identifier,
-        mustChangePassword: user.teacher ? user.teacher.mustChangePassword : false,
+        mustChangePassword: mustChangePassword,
       },
     });
   } catch (error) {
@@ -239,19 +243,17 @@ export async function refreshToken(req, res) {
  */
 export async function teacherResetPassword(req, res) {
   try {
-    const { empId, phone, newPassword } = req.body;
+    const { empId, resetCode, newPassword } = req.body;
 
-    if (!phone || !newPassword) {
-      return res.status(400).json({ error: "Phone number and new password are required." });
-    }
-
-    const whereClause = { phone };
-    if (empId) {
-      whereClause.empId = empId;
+    if (!empId || !resetCode || !newPassword) {
+      return res.status(400).json({ error: "Employee ID, Secret Reset Code, and new password are required." });
     }
 
     const teacher = await prisma.teacher.findFirst({
-      where: whereClause,
+      where: {
+        empId,
+        resetCode,
+      },
       include: { user: true },
     });
 
@@ -277,6 +279,51 @@ export async function teacherResetPassword(req, res) {
     return res.json({ message: "Password reset successfully. You can now login with your new password." });
   } catch (error) {
     console.error("Teacher reset password error:", error);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+}
+
+/**
+ * POST /api/auth/parent-reset-password
+ * Body: { mobile, resetCode, newPassword }
+ *
+ * Resets a parent's password using their mobile number and secret reset code.
+ */
+export async function parentResetPassword(req, res) {
+  try {
+    const { mobile, resetCode, newPassword } = req.body;
+
+    if (!mobile || !resetCode || !newPassword) {
+      return res.status(400).json({ error: "Mobile number, Secret Reset Code, and new password are required." });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        auth_identifier: mobile,
+        role: "PARENT",
+        resetCode,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "No parent account found matching the details provided." });
+    }
+
+    // Hash the new password using bcryptjs
+    const password_hash = await bcryptjs.hash(newPassword, 10);
+
+    // Update user password and set mustChangePassword to false
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password_hash,
+        mustChangePassword: false,
+      },
+    });
+
+    return res.json({ message: "Password reset successfully. You can now login with your new password." });
+  } catch (error) {
+    console.error("Parent reset password error:", error);
     return res.status(500).json({ error: "Internal server error." });
   }
 }

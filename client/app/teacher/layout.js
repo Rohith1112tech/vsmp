@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import RoleGuard from "@/components/auth/RoleGuard";
 import { useAuth } from "@/context/AuthContext";
 import { usePathname } from "next/navigation";
@@ -8,15 +8,36 @@ import Link from "next/link";
 import { apiClient } from "@/lib/api";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/teacher/dashboard", icon: "📊" },
-  { label: "Attendance", href: "/teacher/attendance", icon: "✅" },
-  { label: "Marks", href: "/teacher/marks", icon: "📝" },
+  { label: "Dashboard",     href: "/teacher/dashboard",     icon: "📊" },
+  { label: "Attendance",    href: "/teacher/attendance",    icon: "✅" },
+  { label: "Marks",         href: "/teacher/marks",         icon: "📝" },
+  { label: "Students",      href: "/teacher/students",      icon: "👥" },
+  { label: "Announcements", href: "/teacher/announcements", icon: "📢" },
+  { label: "HW",            href: "/teacher/homework",      icon: "📓" },
+  { label: "Progress",      href: "/teacher/progress",      icon: "📈" },
 ];
 
 function TeacherShell({ children }) {
   const { user, logout, updateUser } = useAuth();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isClassTeacher, setIsClassTeacher] = useState(false);
+
+  // Check if teacher is class teacher
+  useEffect(() => {
+    async function checkRole() {
+      try {
+        const res = await apiClient.get("/teacher/dashboard");
+        const hasClassTeacherRole = res.assignments?.some((a) => a.role === "CLASS_TEACHER");
+        setIsClassTeacher(!!hasClassTeacherRole);
+      } catch (err) {
+        console.error("Failed to check class teacher assignment", err);
+      }
+    }
+    if (user) {
+      checkRole();
+    }
+  }, [user]);
 
   // Password change states
   const [newPassword, setNewPassword] = useState("");
@@ -54,6 +75,39 @@ function TeacherShell({ children }) {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      const form = e.target.form;
+      if (!form) return;
+      
+      const index = Array.prototype.indexOf.call(form.elements, e.target);
+      if (index === -1) return;
+      
+      let nextIndex = index + 1;
+      while (nextIndex < form.elements.length) {
+        const nextEl = form.elements[nextIndex];
+        if (
+          nextEl &&
+          !nextEl.disabled &&
+          nextEl.type !== "hidden" &&
+          (nextEl.tagName === "INPUT" || nextEl.tagName === "BUTTON")
+        ) {
+          if (nextEl.type === "submit") {
+            return;
+          }
+          if (nextEl.type === "button" && nextEl.className.includes("absolute")) {
+            nextIndex++;
+            continue;
+          }
+          e.preventDefault();
+          nextEl.focus();
+          return;
+        }
+        nextIndex++;
+      }
+    }
+  };
+
   if (user?.mustChangePassword === true) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4 relative overflow-hidden">
@@ -83,7 +137,8 @@ function TeacherShell({ children }) {
                     type={showPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="••••••••"
+                    onKeyDown={handleKeyDown}
+                    placeholder=""
                     className="w-full px-4 pr-11 py-2.5 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   />
                   <button
@@ -118,7 +173,8 @@ function TeacherShell({ children }) {
                     type={showPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
+                    onKeyDown={handleKeyDown}
+                    placeholder=""
                     className="w-full px-4 pr-11 py-2.5 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   />
                   <button
@@ -181,7 +237,7 @@ function TeacherShell({ children }) {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-blue-900 flex flex-col flex-shrink-0 transition-transform duration-300 lg:translate-x-0 ${
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-blue-900 flex flex-col flex-shrink-0 transition-transform duration-300 lg:translate-x-0 ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
         <div className="p-6 border-b border-blue-800">
@@ -196,8 +252,9 @@ function TeacherShell({ children }) {
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
+            if (item.label === "Progress" && !isClassTeacher) return null;
             const isActive = pathname.startsWith(item.href);
             return (
               <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)}
@@ -230,7 +287,7 @@ function TeacherShell({ children }) {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto min-h-screen">
+      <main className="flex-1 lg:pl-64 min-h-screen">
         <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3">
           <button onClick={() => setSidebarOpen(true)} className="p-2 hover:bg-slate-100 rounded-lg">
             <svg className="w-6 h-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

@@ -5,7 +5,20 @@ import { apiClient } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
-const ROMAN_NUMERALS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+const GRADES = [
+  { roman: "I", num: "1" },
+  { roman: "II", num: "2" },
+  { roman: "III", num: "3" },
+  { roman: "IV", num: "4" },
+  { roman: "V", num: "5" },
+  { roman: "VI", num: "6" },
+  { roman: "VII", num: "7" },
+  { roman: "VIII", num: "8" },
+  { roman: "IX", num: "9" },
+  { roman: "X", num: "10" },
+  { roman: "XI", num: "11" },
+  { roman: "XII", num: "12" }
+];
 const COLORS = ["YELLOW", "PINK", "BLUE"];
 
 export default function ClassesPage() {
@@ -168,18 +181,18 @@ export default function ClassesPage() {
                   Select Grade (1 - 12)
                 </span>
                 <div className="grid grid-cols-4 gap-2">
-                  {ROMAN_NUMERALS.map((num) => (
+                  {GRADES.map((grade) => (
                     <button
-                      key={num}
+                      key={grade.roman}
                       type="button"
-                      onClick={() => setSelectedRoman(num)}
+                      onClick={() => setSelectedRoman(grade.roman)}
                       className={`py-2 text-sm font-semibold rounded-xl border transition-all duration-200 ${
-                        selectedRoman === num
+                        selectedRoman === grade.roman
                           ? "bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-500/20"
                           : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700"
                       }`}
                     >
-                      {num}
+                      {grade.num}
                     </button>
                   ))}
                 </div>

@@ -15,6 +15,7 @@ import {
   verifyOTPHandler,
   refreshToken,
   teacherResetPassword,
+  parentResetPassword,
 } from "../controllers/auth.controller.js";
 
 const router = Router();
@@ -28,6 +29,9 @@ router.post("/verify-otp", verifyOTPHandler);
 
 // Password reset for Teacher using phone number
 router.post("/teacher-reset-password", teacherResetPassword);
+
+// Password reset for Parent using secret reset code
+router.post("/parent-reset-password", parentResetPassword);
 
 // Token refresh — issue a new access token using a valid refresh token
 router.post("/refresh", refreshToken);

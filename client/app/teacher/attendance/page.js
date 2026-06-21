@@ -28,7 +28,7 @@ export default function AttendancePage() {
   useEffect(() => {
     async function loadClasses() {
       try {
-        const res = await apiClient.get("/teacher/my-classes");
+        const res = await apiClient.get("/teacher/my-classes?role=CLASS_TEACHER");
         setClasses(res.classes || []);
         if (res.classes?.length > 0) {
           setSelectedClass(res.classes[0]);
@@ -214,7 +214,19 @@ export default function AttendancePage() {
         )}
 
         {/* Empty State */}
-        {!loadingStudents && !selectedClass && (
+        {!loadingStudents && classes.length === 0 && (
+          <div className="py-16 text-center px-6">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 text-3xl border border-amber-200">
+              ⚠️
+            </div>
+            <h3 className="text-sm font-semibold text-slate-800">No Class Teacher Assignment</h3>
+            <p className="text-slate-500 text-xs max-w-md mx-auto mt-2 leading-relaxed">
+              Daily attendance can only be marked by the designated Class Teacher. You are currently not assigned as a Class Teacher for any class.
+            </p>
+          </div>
+        )}
+
+        {!loadingStudents && classes.length > 0 && !selectedClass && (
           <div className="py-16 text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-50 flex items-center justify-center">
               <span className="text-3xl">📋</span>

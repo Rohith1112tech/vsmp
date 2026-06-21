@@ -47,6 +47,80 @@ function paginatedResponse(data, total, page, limit) {
   };
 }
 
+/**
+ * Generate a unique 6-character alphanumeric reset code (caps & numbers).
+ */
+function generateResetCode() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+/**
+ * Roman numeral to integer converter.
+ * Handles standard Roman numerals I through XII (and beyond).
+ */
+const ROMAN_MAP = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+function romanToInt(str) {
+  let total = 0;
+  for (let i = 0; i < str.length; i++) {
+    const curr = ROMAN_MAP[str[i]] || 0;
+    const next = ROMAN_MAP[str[i + 1]] || 0;
+    total += curr < next ? -curr : curr;
+  }
+  return total;
+}
+
+/**
+ * Compare two class names like "VII-BLUE" and "X-YELLOW".
+ * Sorts first by the Roman numeral grade, then alphabetically by suffix.
+ * Falls back to plain alphabetical comparison for non-Roman names.
+ */
+function compareClassNames(a, b) {
+  const nameA = typeof a === "string" ? a : a.name;
+  const nameB = typeof b === "string" ? b : b.name;
+  const partsA = nameA.split("-");
+  const partsB = nameB.split("-");
+  const numA = romanToInt(partsA[0]);
+  const numB = romanToInt(partsB[0]);
+  if (numA !== numB) return numA - numB;
+  const suffA = partsA.slice(1).join("-");
+  const suffB = partsB.slice(1).join("-");
+  return suffA.localeCompare(suffB);
+}
+
+async function getOrCreateParentUser(parent_mobile) {
+  let parentUser = await prisma.user.findUnique({
+    where: { auth_identifier: parent_mobile },
+  });
+
+  if (!parentUser) {
+    const defaultPassword = "parent" + parent_mobile.slice(-4);
+    const passwordHash = await bcrypt.hash(defaultPassword, 10);
+
+    let resetCode = generateResetCode();
+    let exists = await prisma.user.findFirst({ where: { resetCode } });
+    while (exists) {
+      resetCode = generateResetCode();
+      exists = await prisma.user.findFirst({ where: { resetCode } });
+    }
+
+    parentUser = await prisma.user.create({
+      data: {
+        role: "PARENT",
+        auth_identifier: parent_mobile,
+        password_hash: passwordHash,
+        mustChangePassword: true,
+        resetCode,
+      },
+    });
+  }
+  return parentUser;
+}
+
 // ─────────────────────────────────────────────────────────────
 // DASHBOARD
 // ─────────────────────────────────────────────────────────────
@@ -131,7 +205,7 @@ router.get("/teachers", async (req, res) => {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy: { name: "asc" },
         include: {
           user: {
             select: {
@@ -247,6 +321,14 @@ router.post("/teachers", async (req, res) => {
       }
     }
 
+    // Generate a unique 6-character alphanumeric reset code
+    let resetCode = generateResetCode();
+    let codeExists = await prisma.teacher.findUnique({ where: { resetCode } });
+    while (codeExists) {
+      resetCode = generateResetCode();
+      codeExists = await prisma.teacher.findUnique({ where: { resetCode } });
+    }
+
     // Auto-generate default password: teacher + digits of emp_id
     const digits = emp_id.replace(/\D/g, "");
     const defaultPass = "teacher" + (digits || "001");
@@ -271,6 +353,7 @@ router.post("/teachers", async (req, res) => {
           empId: emp_id,
           phone: phone || null,
           mustChangePassword: true,
+          resetCode,
         },
         include: {
           user: {
@@ -478,13 +561,14 @@ router.get("/students", async (req, res) => {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy: { name: "asc" },
         include: {
           parent: {
             select: {
               id: true,
               auth_identifier: true,
               role: true,
+              resetCode: true,
             },
           },
         },
@@ -522,6 +606,7 @@ router.get("/students/:id", async (req, res) => {
             id: true,
             auth_identifier: true,
             role: true,
+            resetCode: true,
           },
         },
         attendance: {
@@ -577,20 +662,8 @@ router.post("/students", async (req, res) => {
     }
 
     // Ensure a PARENT user exists for this mobile number
-    let parentUser = await prisma.user.findUnique({
-      where: { auth_identifier: parent_mobile },
-    });
-
-    if (!parentUser) {
-      // Auto-create a passwordless parent user
-      parentUser = await prisma.user.create({
-        data: {
-          role: "PARENT",
-          auth_identifier: parent_mobile,
-          // password_hash stays null — parents use OTP
-        },
-      });
-    } else if (parentUser.role !== "PARENT") {
+    const parentUser = await getOrCreateParentUser(parent_mobile);
+    if (parentUser.role !== "PARENT") {
       // The mobile number is already taken by a non-parent user
       return res.status(409).json({
         error: `The identifier "${parent_mobile}" belongs to a ${parentUser.role} user, not a PARENT`,
@@ -609,6 +682,7 @@ router.post("/students", async (req, res) => {
             id: true,
             auth_identifier: true,
             role: true,
+            resetCode: true,
           },
         },
       },
@@ -645,18 +719,8 @@ router.put("/students/:id", async (req, res) => {
 
     // If the parent mobile is changing, ensure a PARENT user exists
     if (parent_mobile && parent_mobile !== existing.parentMobile) {
-      let parentUser = await prisma.user.findUnique({
-        where: { auth_identifier: parent_mobile },
-      });
-
-      if (!parentUser) {
-        await prisma.user.create({
-          data: {
-            role: "PARENT",
-            auth_identifier: parent_mobile,
-          },
-        });
-      } else if (parentUser.role !== "PARENT") {
+      const parentUser = await getOrCreateParentUser(parent_mobile);
+      if (parentUser.role !== "PARENT") {
         return res.status(409).json({
           error: `The identifier "${parent_mobile}" belongs to a ${parentUser.role} user, not a PARENT`,
         });
@@ -677,6 +741,7 @@ router.put("/students/:id", async (req, res) => {
             id: true,
             auth_identifier: true,
             role: true,
+            resetCode: true,
           },
         },
       },
@@ -867,43 +932,79 @@ router.get("/assignments", async (req, res) => {
  */
 router.post("/assignments", async (req, res) => {
   try {
-    const { teacher_id, class_name, subject_id } = req.body;
+    const { teacher_id, class_name, subject_id, role } = req.body;
 
-    if (!teacher_id || !class_name || !subject_id) {
+    const assignmentRole = role || "SUBJECT_TEACHER";
+
+    if (!teacher_id || !class_name) {
       return res
         .status(400)
-        .json({ error: "teacher_id, class_name, and subject_id are required" });
+        .json({ error: "teacher_id and class_name are required" });
+    }
+
+    if (assignmentRole === "SUBJECT_TEACHER" && !subject_id) {
+      return res
+        .status(400)
+        .json({ error: "subject_id is required for subject teacher assignments" });
     }
 
     const teacherId = parseInt(teacher_id, 10);
-    const subjectId = parseInt(subject_id, 10);
+    const subjectId = subject_id ? parseInt(subject_id, 10) : null;
 
-    // Validate that both the teacher and subject exist
-    const [teacher, subject] = await Promise.all([
-      prisma.teacher.findUnique({ where: { id: teacherId } }),
-      prisma.subject.findUnique({ where: { id: subjectId } }),
-    ]);
-
+    // Validate that the teacher exists
+    const teacher = await prisma.teacher.findUnique({ where: { id: teacherId } });
     if (!teacher) {
       return res.status(404).json({ error: "Teacher not found" });
     }
-    if (!subject) {
-      return res.status(404).json({ error: "Subject not found" });
+
+    // Validate that the subject exists if subject_id is provided
+    if (subjectId) {
+      const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
+      if (!subject) {
+        return res.status(404).json({ error: "Subject not found" });
+      }
+    }
+
+    // Business Logic Validation for Class Teacher:
+    if (assignmentRole === "CLASS_TEACHER") {
+      // 1. One class teacher per class
+      const existingClassTeacher = await prisma.teacherAssignment.findFirst({
+        where: { className: class_name, role: "CLASS_TEACHER" }
+      });
+      if (existingClassTeacher) {
+        return res.status(409).json({ error: "This class already has a class teacher assigned" });
+      }
+
+      // 2. A teacher can only be a class teacher of one class
+      const existingTeacherAssignment = await prisma.teacherAssignment.findFirst({
+        where: { teacherId, role: "CLASS_TEACHER" }
+      });
+      if (existingTeacherAssignment) {
+        return res.status(409).json({ error: "This teacher is already assigned as a class teacher for another class" });
+      }
     }
 
     // Check for duplicate assignment
-    const duplicate = await prisma.teacherAssignment.findUnique({
-      where: {
-        teacherId_className_subjectId: {
-          teacherId,
-          className: class_name,
-          subjectId,
-        },
-      },
+    const whereDuplicate = {
+      teacherId,
+      className: class_name,
+      role: assignmentRole,
+    };
+    if (assignmentRole !== "CLASS_TEACHER") {
+      whereDuplicate.subjectId = subjectId;
+    } else {
+      whereDuplicate.subjectId = null;
+    }
+
+    const duplicate = await prisma.teacherAssignment.findFirst({
+      where: whereDuplicate
     });
+
     if (duplicate) {
       return res.status(409).json({
-        error: "This teacher is already assigned to this class + subject",
+        error: assignmentRole === "CLASS_TEACHER" 
+          ? "This teacher is already the class teacher of this class"
+          : "This teacher is already assigned to this class + subject",
       });
     }
 
@@ -912,6 +1013,7 @@ router.post("/assignments", async (req, res) => {
         teacherId,
         className: class_name,
         subjectId,
+        role: assignmentRole,
       },
       include: {
         teacher: { select: { id: true, name: true, empId: true } },
@@ -922,13 +1024,6 @@ router.post("/assignments", async (req, res) => {
     res.status(201).json(assignment);
   } catch (error) {
     console.error("Create assignment error:", error);
-
-    if (error.code === "P2002") {
-      return res.status(409).json({
-        error: "Duplicate assignment for this teacher/class/subject",
-      });
-    }
-
     res.status(500).json({ error: "Failed to create assignment" });
   }
 });
@@ -971,9 +1066,9 @@ router.delete("/assignments/:id", async (req, res) => {
  */
 router.get("/classes", async (_req, res) => {
   try {
-    const classes = await prisma.class.findMany({
-      orderBy: { name: "asc" },
-    });
+    const classes = await prisma.class.findMany();
+    // Sort using Roman numeral-aware comparator
+    classes.sort(compareClassNames);
     // Return both full objects (for the UI) and a flat name array (for dropdowns)
     res.json(classes);
   } catch (error) {
@@ -1047,7 +1142,12 @@ router.get("/classes/:className/performance", async (req, res) => {
       where: { className },
       include: {
         attendance: true,
-        marks: true,
+        marks: {
+          include: {
+            subject: { select: { id: true, name: true } },
+            teacher: { select: { id: true, name: true } },
+          },
+        },
       },
     });
 
@@ -1067,6 +1167,7 @@ router.get("/classes/:className/performance", async (req, res) => {
         avgMark: avgMark !== null ? Math.round(avgMark * 10) / 10 : null,
         attendancePercent: attendancePercent !== null ? Math.round(attendancePercent) : null,
         totalMarks,
+        marks: student.marks,
       };
     });
 

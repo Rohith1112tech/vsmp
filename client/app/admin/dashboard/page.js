@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { apiClient } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/components/ui/Toast";
 import Link from "next/link";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -21,6 +23,7 @@ export default function AdminDashboard() {
       setStats(data);
     } catch (err) {
       console.error("Failed to load dashboard:", err);
+      showToast(err.data?.error || err.message || "Failed to load dashboard data", "error");
     } finally {
       setLoading(false);
     }

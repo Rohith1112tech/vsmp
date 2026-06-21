@@ -34,7 +34,7 @@ export default function TeacherDashboard() {
     ? [...new Set(data.assignments.map((a) => a.className))]
     : [];
   const uniqueSubjects = data?.assignments
-    ? [...new Map(data.assignments.map((a) => [a.subject.id, a.subject])).values()]
+    ? [...new Map(data.assignments.filter((a) => a.subject).map((a) => [a.subject.id, a.subject])).values()]
     : [];
 
   return (
@@ -132,40 +132,16 @@ export default function TeacherDashboard() {
             </div>
           </div>
         </Link>
-      </div>
-
-      {/* Assignments Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-900">My Assignments</h2>
-        </div>
-        {loading ? (
-          <div className="divide-y divide-slate-100">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex gap-4 p-4"><div className="flex-1 h-5 bg-slate-100 rounded-lg animate-pulse" /><div className="flex-1 h-5 bg-slate-100 rounded-lg animate-pulse" /></div>
-            ))}
-          </div>
-        ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="bg-blue-600 text-white">
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Class</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Subject</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {(data?.assignments || []).length === 0 ? (
-                <tr><td colSpan={2} className="px-6 py-12 text-center text-slate-500">No assignments found</td></tr>
-              ) : (
-                data.assignments.map((a, idx) => (
-                  <tr key={a.id || idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
-                    <td className="px-6 py-4 text-sm font-medium text-slate-900">{a.className}</td>
-                    <td className="px-6 py-4 text-sm text-slate-700">{a.subject?.name || a.subjectName || "—"}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        {data?.assignments?.some((a) => a.role === "CLASS_TEACHER") && (
+          <Link href="/teacher/progress" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md hover:border-blue-200 transition-all group lg:col-span-2">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform"><span className="text-3xl">📈</span></div>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">Class Progress Card</h3>
+                <p className="text-sm text-slate-500">View progress cards for students in your class (Half Yearly & Annual Exams)</p>
+              </div>
+            </div>
+          </Link>
         )}
       </div>
     </div>

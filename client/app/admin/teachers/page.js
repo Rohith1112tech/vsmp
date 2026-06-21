@@ -167,7 +167,7 @@ export default function TeachersPage() {
       } else {
         const created = await apiClient.post("/admin/teachers", payload);
         teacherId = created.id;
-        showToast("Teacher added successfully", "success");
+        showToast(`Teacher added successfully. Secret Reset Code: ${created.resetCode || '—'}`, "success");
       }
 
       // Sync assignments: add new ones (skip ones that already have an existing_id)
@@ -251,6 +251,15 @@ export default function TeachersPage() {
       ),
     },
     {
+      key: "resetCode",
+      label: "Secret Reset Code",
+      render: (row) => (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold font-mono">
+          🔑 {row.resetCode || "—"}
+        </span>
+      ),
+    },
+    {
       key: "assignments",
       label: "Assigned",
       render: (row) => {
@@ -281,7 +290,7 @@ export default function TeachersPage() {
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Teacher Section</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Teachers</h1>
           <p className="text-slate-500 text-sm mt-1">Manage your school&apos;s teaching staff</p>
         </div>
         <button

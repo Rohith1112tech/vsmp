@@ -12,6 +12,7 @@
 
 import { Router } from "express";
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -438,4 +439,81 @@ router.get("/announcements", async (_req, res) => {
   }
 });
 
+/**
+ * GET /api/parent/homework
+ * Fetch homework posted for the parent's children's classes.
+ */
+router.get("/homework", async (req, res) => {
+  try {
+    const mobile = req.user.auth_identifier;
+
+    // Find all students owned by this parent
+    const students = await prisma.student.findMany({
+      where: { parentMobile: mobile },
+      select: { id: true, name: true, className: true },
+    });
+
+    if (students.length === 0) {
+      return res.json({ homeworks: [], children: [] });
+    }
+
+    const classNames = [...new Set(students.map((s) => s.className))];
+
+    // Fetch homeworks for these classes
+    const homeworks = await prisma.homework.findMany({
+      where: {
+        className: { in: classNames },
+      },
+      include: {
+        subject: {
+          select: { id: true, name: true },
+        },
+        teacher: {
+          select: { id: true, name: true },
+        },
+      },
+      orderBy: { dueDate: "asc" },
+    });
+
+    res.json({ homeworks, children: students });
+  } catch (error) {
+    console.error("Parent fetch homework error:", error);
+    res.status(500).json({ error: "Failed to fetch homework" });
+  }
+});
+
+/**
+ * POST /api/parent/change-password
+ *
+ * Changes the authenticated parent's password and sets mustChangePassword to false.
+ */
+router.post("/change-password", async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    if (!newPassword) {
+      return res.status(400).json({ error: "New password is required." });
+    }
+
+    const userId = req.user.id;
+
+    // Hash the new password
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    // Update password hash and mustChangePassword
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        password_hash: passwordHash,
+        mustChangePassword: false,
+      },
+    });
+
+    res.json({ message: "Password updated successfully." });
+  } catch (error) {
+    console.error("Parent change password error:", error);
+    res.status(500).json({ error: "Failed to update password." });
+  }
+});
+
 export default router;
+

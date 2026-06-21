@@ -53,6 +53,7 @@ export default function LoginForm() {
   const [formData, setFormData] = useState({
     email: "",
     employeeId: "",
+    mobile: "",
     password: "",
   });
   const [loading, setLoading] = useState(false);
@@ -60,7 +61,8 @@ export default function LoginForm() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [resetForm, setResetForm] = useState({
     employeeId: "",
-    phone: "",
+    mobile: "",
+    resetCode: "",
     newPassword: "",
     confirmPassword: "",
   });
@@ -74,8 +76,45 @@ export default function LoginForm() {
   const currentTab = TABS.find((t) => t.id === activeTab);
 
   const handleInputChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    let val = e.target.value;
+    if (e.target.name === "employeeId") {
+      val = val.toUpperCase();
+    }
+    setFormData((prev) => ({ ...prev, [e.target.name]: val }));
     setError("");
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      const form = e.target.form;
+      if (!form) return;
+      
+      const index = Array.prototype.indexOf.call(form.elements, e.target);
+      if (index === -1) return;
+      
+      let nextIndex = index + 1;
+      while (nextIndex < form.elements.length) {
+        const nextEl = form.elements[nextIndex];
+        if (
+          nextEl &&
+          !nextEl.disabled &&
+          nextEl.type !== "hidden" &&
+          (nextEl.tagName === "INPUT" || nextEl.tagName === "BUTTON")
+        ) {
+          if (nextEl.type === "submit") {
+            return;
+          }
+          if (nextEl.type === "button" && nextEl.className.includes("absolute")) {
+            nextIndex++;
+            continue;
+          }
+          e.preventDefault();
+          nextEl.focus();
+          return;
+        }
+        nextIndex++;
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -93,15 +132,32 @@ export default function LoginForm() {
         setError("Please fill in all fields");
         return;
       }
+    } else if (activeTab === "parent") {
+      if (!formData.mobile || !formData.password) {
+        setError("Please fill in all fields");
+        return;
+      }
+      if (!/^\d{10}$/.test(formData.mobile.trim())) {
+        setError("Mobile number must be a 10-digit number");
+        return;
+      }
     }
 
     setLoading(true);
     try {
-      // 🚀 CRITICAL FIX: Map different frontend field identities directly to backend 'auth_identifier' 
+      let auth_identifier = "";
+      if (activeTab === "admin") {
+        auth_identifier = formData.email.trim();
+      } else if (activeTab === "teacher") {
+        auth_identifier = formData.employeeId.trim();
+      } else {
+        auth_identifier = formData.mobile.trim();
+      }
+
       const payload = {
-        auth_identifier: activeTab === "admin" ? formData.email.trim() : formData.employeeId.trim(),
+        auth_identifier,
         password: formData.password,
-        role: activeTab.toUpperCase() // Becomes "ADMIN" or "TEACHER"
+        role: activeTab.toUpperCase()
       };
 
       // Pass the fully normalized payload down to your context's login runner
@@ -119,7 +175,10 @@ export default function LoginForm() {
     setError("");
     setSuccessMessage("");
 
-    if (!resetForm.employeeId.trim() || !resetForm.phone.trim() || !resetForm.newPassword) {
+    const isTeacher = activeTab === "teacher";
+    const identifier = isTeacher ? resetForm.employeeId.trim() : resetForm.mobile.trim();
+
+    if (!identifier || !resetForm.resetCode.trim() || !resetForm.newPassword) {
       setError("All fields are required");
       return;
     }
@@ -131,15 +190,26 @@ export default function LoginForm() {
 
     setLoading(true);
     try {
-      const res = await apiClient.post("/auth/teacher-reset-password", {
-        empId: resetForm.employeeId.trim(),
-        phone: resetForm.phone.trim(),
-        newPassword: resetForm.newPassword,
-      });
-      setSuccessMessage(res.message || "Password reset successfully. You can now login.");
-      setIsResettingPassword(false);
-      setFormData((prev) => ({ ...prev, employeeId: resetForm.employeeId }));
-      setResetForm({ employeeId: "", phone: "", newPassword: "", confirmPassword: "" });
+      if (isTeacher) {
+        const res = await apiClient.post("/auth/teacher-reset-password", {
+          empId: identifier,
+          resetCode: resetForm.resetCode.trim(),
+          newPassword: resetForm.newPassword,
+        });
+        setSuccessMessage(res.message || "Password reset successfully. You can now login.");
+        setIsResettingPassword(false);
+        setFormData((prev) => ({ ...prev, employeeId: identifier }));
+      } else {
+        const res = await apiClient.post("/auth/parent-reset-password", {
+          mobile: identifier,
+          resetCode: resetForm.resetCode.trim(),
+          newPassword: resetForm.newPassword,
+        });
+        setSuccessMessage(res.message || "Password reset successfully. You can now login.");
+        setIsResettingPassword(false);
+        setFormData((prev) => ({ ...prev, mobile: identifier }));
+      }
+      setResetForm({ employeeId: "", mobile: "", resetCode: "", newPassword: "", confirmPassword: "" });
     } catch (err) {
       setError(err.data?.error || err.message || "Failed to reset password. Please verify your details.");
     } finally {
@@ -210,7 +280,8 @@ export default function LoginForm() {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  placeholder="admin@school.com"
+                  onKeyDown={handleKeyDown}
+                  placeholder=""
                   className={`w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                   autoComplete="email"
                 />
@@ -225,7 +296,8 @@ export default function LoginForm() {
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    placeholder="••••••••"
+                    onKeyDown={handleKeyDown}
+                    placeholder=""
                     className={`w-full pl-4 pr-11 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                     autoComplete="current-password"
                   />
@@ -276,37 +348,58 @@ export default function LoginForm() {
             </form>
           )}
 
-          {/* Teacher Form */}
-          {activeTab === "teacher" && (
+          {/* Teacher & Parent Forms */}
+          {(activeTab === "teacher" || activeTab === "parent") && (
             isResettingPassword ? (
               <form onSubmit={handleResetSubmit} className="space-y-5 tab-content-enter">
                 <div>
                   <h3 className="text-sm font-semibold text-slate-200 mb-1">Reset Password</h3>
                   <p className="text-[11px] text-slate-400 mb-2 leading-normal">
-                    Enter your Employee ID and registered phone number to set a new password.
+                    {activeTab === "teacher" 
+                      ? "Enter your Employee ID and secret reset code to set a new password."
+                      : "Enter your registered Mobile Number and secret reset code to set a new password."}
                   </p>
                 </div>
+                {activeTab === "teacher" ? (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Employee ID
+                    </label>
+                    <input
+                      type="text"
+                      value={resetForm.employeeId}
+                      onChange={(e) => setResetForm({ ...resetForm, employeeId: e.target.value.toUpperCase() })}
+                      onKeyDown={handleKeyDown}
+                      placeholder=""
+                      className={`w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Mobile Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={resetForm.mobile}
+                      onChange={(e) => setResetForm({ ...resetForm, mobile: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                      onKeyDown={handleKeyDown}
+                      placeholder="10-digit mobile number"
+                      maxLength={10}
+                      className={`w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Employee ID
+                    Secret Reset Code
                   </label>
                   <input
                     type="text"
-                    value={resetForm.employeeId}
-                    onChange={(e) => setResetForm({ ...resetForm, employeeId: e.target.value })}
-                    placeholder="EMP001"
-                    className={`w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    type="text"
-                    value={resetForm.phone}
-                    onChange={(e) => setResetForm({ ...resetForm, phone: e.target.value })}
-                    placeholder="e.g. 9876543210"
+                    value={resetForm.resetCode}
+                    onChange={(e) => setResetForm({ ...resetForm, resetCode: e.target.value.toUpperCase() })}
+                    onKeyDown={handleKeyDown}
+                    placeholder="e.g. ABC123"
                     className={`w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                   />
                 </div>
@@ -319,7 +412,8 @@ export default function LoginForm() {
                       type={showResetPassword ? "text" : "password"}
                       value={resetForm.newPassword}
                       onChange={(e) => setResetForm({ ...resetForm, newPassword: e.target.value })}
-                      placeholder="••••••••"
+                      onKeyDown={handleKeyDown}
+                      placeholder=""
                       className={`w-full pl-4 pr-11 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                     />
                     <button
@@ -353,7 +447,8 @@ export default function LoginForm() {
                       type={showResetPassword ? "text" : "password"}
                       value={resetForm.confirmPassword}
                       onChange={(e) => setResetForm({ ...resetForm, confirmPassword: e.target.value })}
-                      placeholder="••••••••"
+                      onKeyDown={handleKeyDown}
+                      placeholder=""
                       className={`w-full pl-4 pr-11 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                     />
                     <button
@@ -408,20 +503,40 @@ export default function LoginForm() {
               </form>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-5 tab-content-enter">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Employee ID
-                  </label>
-                  <input
-                    type="text"
-                    name="employeeId"
-                    value={formData.employeeId}
-                    onChange={handleInputChange}
-                    placeholder="EMP-001"
-                    className={`w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
-                    autoComplete="username"
-                  />
-                </div>
+                {activeTab === "teacher" ? (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Employee ID
+                    </label>
+                    <input
+                      type="text"
+                      name="employeeId"
+                      value={formData.employeeId}
+                      onChange={handleInputChange}
+                      onKeyDown={handleKeyDown}
+                      placeholder=""
+                      className={`w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                      autoComplete="username"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Mobile Number
+                    </label>
+                    <input
+                      type="tel"
+                      name="mobile"
+                      value={formData.mobile}
+                      onChange={(e) => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                      onKeyDown={handleKeyDown}
+                      placeholder="10-digit mobile number"
+                      maxLength={10}
+                      className={`w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                      autoComplete="username"
+                    />
+                  </div>
+                )}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-sm font-medium text-slate-300">
@@ -433,7 +548,11 @@ export default function LoginForm() {
                         setIsResettingPassword(true);
                         setError("");
                         setSuccessMessage("");
-                        setResetForm((prev) => ({ ...prev, employeeId: formData.employeeId }));
+                        if (activeTab === "teacher") {
+                          setResetForm((prev) => ({ ...prev, employeeId: formData.employeeId }));
+                        } else {
+                          setResetForm((prev) => ({ ...prev, mobile: formData.mobile }));
+                        }
                       }}
                       className="text-xs text-blue-400 hover:text-blue-300 transition-colors focus:outline-none"
                     >
@@ -446,7 +565,8 @@ export default function LoginForm() {
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      placeholder="••••••••"
+                      onKeyDown={handleKeyDown}
+                      placeholder=""
                       className={`w-full pl-4 pr-11 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                       autoComplete="current-password"
                     />
@@ -504,9 +624,6 @@ export default function LoginForm() {
               </form>
             )
           )}
-
-          {/* Parent Form (OTP) */}
-          {activeTab === "parent" && <OTPForm />}
         </div>
       </div>
 

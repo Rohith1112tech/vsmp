@@ -62,26 +62,33 @@ async function main() {
     update: {
       name: "John Smith",
       empId: "EMP001",
+      resetCode: "ABC123",
     },
     create: {
       userId: teacherUser.id,
       name: "John Smith",
       empId: "EMP001",
+      resetCode: "ABC123",
     },
   });
   console.log("✅ Teacher profile:", teacher.name, `(empId: ${teacher.empId})`);
 
-  // ─── 3. Parent User ────────────────────────────────────
+  const parentPasswordHash = await bcrypt.hash("parent3210", 10);
 
   const parentUser = await prisma.user.upsert({
     where: { auth_identifier: "9876543210" },
     update: {
       role: "PARENT",
+      password_hash: parentPasswordHash,
+      mustChangePassword: true,
+      resetCode: "XYZ789",
     },
     create: {
       auth_identifier: "9876543210",
       role: "PARENT",
-      // No password — parents use OTP
+      password_hash: parentPasswordHash,
+      mustChangePassword: true,
+      resetCode: "XYZ789",
     },
   });
   console.log("✅ Parent user:", parentUser.auth_identifier, `(id: ${parentUser.id})`);
