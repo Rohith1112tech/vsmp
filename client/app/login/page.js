@@ -26,10 +26,10 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <h1 className="text-2xl font-bold text-white mb-1 tracking-tight">
+          <h1 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">
             School Management Platform
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-600">
             Sign in to access your dashboard
           </p>
         </div>

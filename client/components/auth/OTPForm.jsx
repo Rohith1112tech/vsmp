@@ -149,7 +149,7 @@ export default function OTPForm() {
         /* Step 1: Mobile Number */
         <form onSubmit={handleSendOTP} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               Mobile Number
             </label>
             <div className="relative">
@@ -164,16 +164,16 @@ export default function OTPForm() {
                   setMobile(val);
                 }}
                 placeholder="Enter your mobile number"
-                className="w-full pl-14 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
+                className="w-full pl-14 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
                 autoComplete="tel"
               />
             </div>
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-              <span className="text-red-400 text-sm flex-shrink-0">⚠</span>
-              <p className="text-sm text-red-300">{error}</p>
+            <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+              <span className="text-red-600 text-sm flex-shrink-0">⚠</span>
+              <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
 
@@ -197,9 +197,9 @@ export default function OTPForm() {
         <form onSubmit={handleVerifyOTP} className="space-y-5">
           {/* Dev banner showing OTP */}
           {devOtp && (
-            <div className="flex items-center gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-              <span className="text-amber-400 text-sm">🔑</span>
-              <p className="text-sm text-amber-300">
+            <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+              <span className="text-amber-600 text-sm">🔑</span>
+              <p className="text-sm text-amber-800">
                 <span className="font-medium">Dev Mode:</span> OTP is{" "}
                 <span className="font-mono font-bold tracking-wider">{devOtp}</span>
               </p>
@@ -208,7 +208,7 @@ export default function OTPForm() {
 
           <div>
             <p className="text-sm text-slate-400 mb-1">OTP sent to</p>
-            <p className="text-white font-medium">
+            <p className="text-slate-900 font-medium">
               +91 {mobile.slice(0, 3)}●●●●{mobile.slice(-3)}
             </p>
           </div>
@@ -248,9 +248,9 @@ export default function OTPForm() {
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-              <span className="text-red-400 text-sm flex-shrink-0">⚠</span>
-              <p className="text-sm text-red-300">{error}</p>
+            <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+              <span className="text-red-600 text-sm flex-shrink-0">⚠</span>
+              <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
 
@@ -279,7 +279,7 @@ export default function OTPForm() {
                 setOtp(["", "", "", "", "", ""]);
                 setDevOtp("");
               }}
-              className="text-sm text-slate-400 hover:text-white transition-colors"
+              className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
             >
               ← Change Number
             </button>
@@ -287,7 +287,7 @@ export default function OTPForm() {
               <button
                 type="button"
                 onClick={handleResendOTP}
-                className="text-sm text-purple-400 hover:text-purple-300 font-medium transition-colors"
+                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
               >
                 Resend OTP
               </button>

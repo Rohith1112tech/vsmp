@@ -25,13 +25,13 @@ export default function RoleGuard({ children, allowedRole }) {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+      <div className="min-h-screen flex items-center justify-center gradient-mesh">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
-            <div className="w-12 h-12 rounded-full border-2 border-white/10 border-t-white/60 animate-spin-slow" />
-            <div className="absolute inset-0 w-12 h-12 rounded-full border-2 border-transparent border-b-white/30 animate-spin-slow" style={{ animationDirection: "reverse", animationDuration: "3s" }} />
+            <div className="w-12 h-12 rounded-full border-2 border-slate-200 border-t-indigo-600/60 animate-spin-slow" />
+            <div className="absolute inset-0 w-12 h-12 rounded-full border-2 border-transparent border-b-indigo-400/30 animate-spin-slow" style={{ animationDirection: "reverse", animationDuration: "3s" }} />
           </div>
-          <p className="text-sm text-slate-400 animate-pulse">Loading...</p>
+          <p className="text-sm text-slate-600 animate-pulse">Loading...</p>
         </div>
       </div>
     );
@@ -40,10 +40,10 @@ export default function RoleGuard({ children, allowedRole }) {
   // Not authenticated or wrong role
   if (!isAuthenticated || user?.role?.toUpperCase() !== allowedRole?.toUpperCase()) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+      <div className="min-h-screen flex items-center justify-center gradient-mesh">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-full border-2 border-white/10 border-t-white/60 animate-spin-slow" />
-          <p className="text-sm text-slate-400">Redirecting...</p>
+          <div className="w-12 h-12 rounded-full border-2 border-slate-200 border-t-indigo-600/60 animate-spin-slow" />
+          <p className="text-sm text-slate-600">Redirecting...</p>
         </div>
       </div>
     );

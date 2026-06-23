@@ -110,26 +110,26 @@ function TeacherShell({ children }) {
 
   if (user?.mustChangePassword === true) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4 relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center gradient-mesh-teacher p-4 relative overflow-hidden">
         {/* Orbs background to match login */}
         <div className="absolute top-1/4 -left-32 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 w-full max-w-md">
-          <div className="bg-slate-800/80 backdrop-blur-md border border-slate-700 rounded-2xl shadow-xl overflow-hidden p-8 animate-fade-in-up">
+          <div className="glass-strong rounded-2xl overflow-hidden p-8 animate-fade-in-up">
             <div className="text-center mb-6">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-xl mx-auto mb-4">
                 <span className="text-3xl">🔒</span>
               </div>
-              <h2 className="text-xl font-bold text-white mb-1">Create New Password</h2>
-              <p className="text-xs text-slate-400">
+              <h2 className="text-xl font-bold text-slate-900 mb-1">Create New Password</h2>
+              <p className="text-xs text-slate-600">
                 This is your first login. Please create a new secure password to access your dashboard.
               </p>
             </div>
 
             <form onSubmit={handlePasswordChangeSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5 uppercase tracking-wider">
+                <label className="block text-xs font-medium text-slate-700 mb-1.5 uppercase tracking-wider">
                   New Password
                 </label>
                 <div className="relative">
@@ -139,12 +139,12 @@ function TeacherShell({ children }) {
                     onChange={(e) => setNewPassword(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder=""
-                    className="w-full px-4 pr-11 py-2.5 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 pr-11 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 focus:outline-none select-none"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none select-none"
                     title={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
@@ -165,7 +165,7 @@ function TeacherShell({ children }) {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5 uppercase tracking-wider">
+                <label className="block text-xs font-medium text-slate-700 mb-1.5 uppercase tracking-wider">
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -175,12 +175,12 @@ function TeacherShell({ children }) {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder=""
-                    className="w-full px-4 pr-11 py-2.5 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 pr-11 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 focus:outline-none select-none"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none select-none"
                     title={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
@@ -201,9 +201,9 @@ function TeacherShell({ children }) {
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-                  <span className="text-red-400 text-sm flex-shrink-0">⚠</span>
-                  <p className="text-xs text-red-300">{error}</p>
+                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+                  <span className="text-red-600 text-sm flex-shrink-0">⚠</span>
+                  <p className="text-xs text-red-800">{error}</p>
                 </div>
               )}
 
@@ -218,7 +218,7 @@ function TeacherShell({ children }) {
               <button
                 type="button"
                 onClick={logout}
-                className="w-full py-2.5 text-slate-400 hover:text-white text-xs transition-colors"
+                className="w-full py-2.5 text-slate-500 hover:text-slate-700 text-xs transition-colors"
               >
                 Sign Out
               </button>

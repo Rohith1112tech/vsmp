@@ -16,9 +16,9 @@ const TABS = [
     focusRing: "focus:ring-emerald-500/20 focus:border-emerald-500/50",
     shadow: "shadow-emerald-500/20",
     hoverShadow: "hover:shadow-emerald-500/30",
-    accent: "text-emerald-400",
-    bgAccent: "bg-emerald-500/10",
-    borderAccent: "border-emerald-500/20",
+    accent: "text-emerald-700",
+    bgAccent: "bg-emerald-50",
+    borderAccent: "border-emerald-200",
   },
   {
     id: "teacher",
@@ -29,9 +29,9 @@ const TABS = [
     focusRing: "focus:ring-blue-500/20 focus:border-blue-500/50",
     shadow: "shadow-blue-500/20",
     hoverShadow: "hover:shadow-blue-500/30",
-    accent: "text-blue-400",
-    bgAccent: "bg-blue-500/10",
-    borderAccent: "border-blue-500/20",
+    accent: "text-blue-700",
+    bgAccent: "bg-blue-50",
+    borderAccent: "border-blue-200",
   },
   {
     id: "parent",
@@ -42,9 +42,9 @@ const TABS = [
     focusRing: "focus:ring-purple-500/20 focus:border-purple-500/50",
     shadow: "shadow-purple-500/20",
     hoverShadow: "hover:shadow-purple-500/30",
-    accent: "text-purple-400",
-    bgAccent: "bg-purple-500/10",
-    borderAccent: "border-purple-500/20",
+    accent: "text-purple-700",
+    bgAccent: "bg-purple-50",
+    borderAccent: "border-purple-200",
   },
 ];
 
@@ -222,7 +222,7 @@ export default function LoginForm() {
       {/* Card */}
       <div className="glass-strong rounded-2xl overflow-hidden">
         {/* Tab Bar */}
-        <div className="flex border-b border-white/5">
+        <div className="flex border-b border-slate-100">
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -236,8 +236,8 @@ export default function LoginForm() {
               }}
               className={`flex-1 py-4 px-3 text-sm font-medium transition-all duration-300 relative ${
                 activeTab === tab.id
-                  ? "text-white"
-                  : "text-slate-500 hover:text-slate-300"
+                  ? "text-slate-900 font-semibold"
+                  : "text-slate-400 hover:text-slate-600"
               }`}
             >
               <span className="flex items-center justify-center gap-2">
@@ -272,7 +272,7 @@ export default function LoginForm() {
           {activeTab === "admin" && (
             <form onSubmit={handleSubmit} className="space-y-5 tab-content-enter">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Email Address
                 </label>
                 <input
@@ -282,12 +282,12 @@ export default function LoginForm() {
                   onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
                   placeholder=""
-                  className={`w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                  className={`w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                   autoComplete="email"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Password
                 </label>
                 <div className="relative">
@@ -298,13 +298,13 @@ export default function LoginForm() {
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                     placeholder=""
-                    className={`w-full pl-4 pr-11 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                    className={`w-full pl-4 pr-11 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                     autoComplete="current-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 focus:outline-none select-none"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none select-none"
                     title={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
@@ -325,9 +325,9 @@ export default function LoginForm() {
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-                  <span className="text-red-400 text-sm flex-shrink-0">⚠</span>
-                  <p className="text-sm text-red-300">{error}</p>
+                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+                  <span className="text-red-600 text-sm flex-shrink-0">⚠</span>
+                  <p className="text-sm text-red-800">{error}</p>
                 </div>
               )}
 
@@ -353,8 +353,8 @@ export default function LoginForm() {
             isResettingPassword ? (
               <form onSubmit={handleResetSubmit} className="space-y-5 tab-content-enter">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-200 mb-1">Reset Password</h3>
-                  <p className="text-[11px] text-slate-400 mb-2 leading-normal">
+                  <h3 className="text-sm font-semibold text-slate-800 mb-1">Reset Password</h3>
+                  <p className="text-[11px] text-slate-500 mb-2 leading-normal">
                     {activeTab === "teacher" 
                       ? "Enter your Employee ID and secret reset code to set a new password."
                       : "Enter your registered Mobile Number and secret reset code to set a new password."}
@@ -362,7 +362,7 @@ export default function LoginForm() {
                 </div>
                 {activeTab === "teacher" ? (
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
                       Employee ID
                     </label>
                     <input
@@ -371,12 +371,12 @@ export default function LoginForm() {
                       onChange={(e) => setResetForm({ ...resetForm, employeeId: e.target.value.toUpperCase() })}
                       onKeyDown={handleKeyDown}
                       placeholder=""
-                      className={`w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                      className={`w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                     />
                   </div>
                 ) : (
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
                       Mobile Number
                     </label>
                     <input
@@ -386,12 +386,12 @@ export default function LoginForm() {
                       onKeyDown={handleKeyDown}
                       placeholder="10-digit mobile number"
                       maxLength={10}
-                      className={`w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                      className={`w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                     />
                   </div>
                 )}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
                     Secret Reset Code
                   </label>
                   <input
@@ -400,11 +400,11 @@ export default function LoginForm() {
                     onChange={(e) => setResetForm({ ...resetForm, resetCode: e.target.value.toUpperCase() })}
                     onKeyDown={handleKeyDown}
                     placeholder="e.g. ABC123"
-                    className={`w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                    className={`w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
                     New Password
                   </label>
                   <div className="relative">
@@ -414,12 +414,12 @@ export default function LoginForm() {
                       onChange={(e) => setResetForm({ ...resetForm, newPassword: e.target.value })}
                       onKeyDown={handleKeyDown}
                       placeholder=""
-                      className={`w-full pl-4 pr-11 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                      className={`w-full pl-4 pr-11 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowResetPassword(!showResetPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 focus:outline-none select-none"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none select-none"
                       title={showResetPassword ? "Hide password" : "Show password"}
                     >
                       {showResetPassword ? (
@@ -439,7 +439,7 @@ export default function LoginForm() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -449,12 +449,12 @@ export default function LoginForm() {
                       onChange={(e) => setResetForm({ ...resetForm, confirmPassword: e.target.value })}
                       onKeyDown={handleKeyDown}
                       placeholder=""
-                      className={`w-full pl-4 pr-11 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                      className={`w-full pl-4 pr-11 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowResetPassword(!showResetPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 focus:outline-none select-none"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none select-none"
                       title={showResetPassword ? "Hide password" : "Show password"}
                     >
                       {showResetPassword ? (
@@ -475,9 +475,9 @@ export default function LoginForm() {
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-                    <span className="text-red-400 text-sm flex-shrink-0">⚠</span>
-                    <p className="text-sm text-red-300">{error}</p>
+                  <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+                    <span className="text-red-600 text-sm flex-shrink-0">⚠</span>
+                    <p className="text-sm text-red-800">{error}</p>
                   </div>
                 )}
 
@@ -495,7 +495,7 @@ export default function LoginForm() {
                       setIsResettingPassword(false);
                       setError("");
                     }}
-                    className="w-full py-1 text-slate-400 hover:text-white text-xs transition-colors"
+                    className="w-full py-1 text-slate-500 hover:text-slate-700 text-xs transition-colors"
                   >
                     Back to Sign In
                   </button>
@@ -505,7 +505,7 @@ export default function LoginForm() {
               <form onSubmit={handleSubmit} className="space-y-5 tab-content-enter">
                 {activeTab === "teacher" ? (
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
                       Employee ID
                     </label>
                     <input
@@ -515,13 +515,13 @@ export default function LoginForm() {
                       onChange={handleInputChange}
                       onKeyDown={handleKeyDown}
                       placeholder=""
-                      className={`w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                      className={`w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                       autoComplete="username"
                     />
                   </div>
                 ) : (
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
                       Mobile Number
                     </label>
                     <input
@@ -532,14 +532,14 @@ export default function LoginForm() {
                       onKeyDown={handleKeyDown}
                       placeholder="10-digit mobile number"
                       maxLength={10}
-                      className={`w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                      className={`w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                       autoComplete="username"
                     />
                   </div>
                 )}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-slate-300">
+                    <label className="block text-sm font-medium text-slate-700">
                       Password
                     </label>
                     <button
@@ -554,7 +554,7 @@ export default function LoginForm() {
                           setResetForm((prev) => ({ ...prev, mobile: formData.mobile }));
                         }
                       }}
-                      className="text-xs text-blue-400 hover:text-blue-300 transition-colors focus:outline-none"
+                      className="text-xs text-blue-600 hover:text-blue-700 transition-colors focus:outline-none"
                     >
                       Forgot password?
                     </button>
@@ -567,13 +567,13 @@ export default function LoginForm() {
                       onChange={handleInputChange}
                       onKeyDown={handleKeyDown}
                       placeholder=""
-                      className={`w-full pl-4 pr-11 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                      className={`w-full pl-4 pr-11 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                       autoComplete="current-password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 focus:outline-none select-none"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none select-none"
                       title={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? (
@@ -594,16 +594,16 @@ export default function LoginForm() {
                 </div>
 
                 {successMessage && (
-                  <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                    <span className="text-emerald-400 text-sm flex-shrink-0">✓</span>
-                    <p className="text-sm text-emerald-300">{successMessage}</p>
+                  <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                    <span className="text-emerald-600 text-sm flex-shrink-0">✓</span>
+                    <p className="text-sm text-emerald-800">{successMessage}</p>
                   </div>
                 )}
 
                 {error && (
-                  <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-                    <span className="text-red-400 text-sm flex-shrink-0">⚠</span>
-                    <p className="text-sm text-red-300">{error}</p>
+                  <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+                    <span className="text-red-600 text-sm flex-shrink-0">⚠</span>
+                    <p className="text-sm text-red-800">{error}</p>
                   </div>
                 )}
 

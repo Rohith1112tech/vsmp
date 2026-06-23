@@ -20,7 +20,7 @@ export default function Home() {
   }, [loading, isAuthenticated, user, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 gradient-mesh">
+    <div className="min-h-screen flex items-center justify-center gradient-mesh">
       <div className="flex flex-col items-center gap-6 animate-fade-in">
         {/* Logo / Icon */}
         <div className="relative">
@@ -32,14 +32,14 @@ export default function Home() {
 
         {/* Loading spinner */}
         <div className="relative">
-          <div className="w-10 h-10 rounded-full border-2 border-white/10 border-t-indigo-400 animate-spin-slow" />
+          <div className="w-10 h-10 rounded-full border-2 border-slate-200 border-t-indigo-600 animate-spin" />
         </div>
 
         <div className="text-center">
-          <h1 className="text-xl font-semibold text-white mb-1">
+          <h1 className="text-xl font-semibold text-slate-900 mb-1">
             School Management Platform
           </h1>
-          <p className="text-sm text-slate-400">Loading your experience...</p>
+          <p className="text-sm text-slate-600">Loading your experience...</p>
         </div>
       </div>
     </div>
