@@ -17,20 +17,20 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center mb-8 animate-fade-in">
           {/* Logo */}
-          <div className="flex justify-center mb-5">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-indigo-500/25">
-                <span className="text-3xl">🎓</span>
+          <div className="flex justify-center mb-6">
+            <div className="relative group/logo">
+              <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-2xl shadow-slate-200 border border-slate-100 transform group-hover/logo:scale-105 transition-transform duration-300">
+                <img src="/logo.png" alt="Logo" className="w-13 h-13 object-contain" />
               </div>
-              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 opacity-20 blur-lg" />
+              <div className="absolute -inset-1.5 rounded-2xl bg-emerald-500/10 opacity-20 blur-lg group-hover/logo:opacity-30 transition-opacity duration-300" />
             </div>
           </div>
 
-          <h1 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">
-            School Management Platform
+          <h1 className="text-2xl font-black mb-1.5 tracking-wider bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent uppercase">
+            SCHOOL MANAGEMENT PLATFORM
           </h1>
-          <p className="text-sm text-slate-600">
-            Sign in to access your dashboard
+          <p className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">
+            SIGN IN TO ACCESS YOUR DASHBOARD
           </p>
         </div>
 

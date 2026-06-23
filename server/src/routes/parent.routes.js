@@ -190,15 +190,21 @@ router.get("/children/:studentId/attendance", async (req, res) => {
   const startDate = new Date(Date.UTC(year, month - 1, 1));
   const endDate = new Date(Date.UTC(year, month, 1));
 
+  const where = {
+    studentId,
+    date: {
+      gte: startDate,
+      lt: endDate,
+    },
+  };
+  const academicYear = req.query.academic_year;
+  if (academicYear) {
+    where.academicYear = academicYear;
+  }
+
   // Fetch attendance records within the date range
   const attendance = await prisma.attendance.findMany({
-    where: {
-      studentId,
-      date: {
-        gte: startDate,
-        lt: endDate,
-      },
-    },
+    where,
     select: {
       id: true,
       date: true,
@@ -272,6 +278,10 @@ router.get("/children/:studentId/marks", async (req, res) => {
   if (examNameFilter) {
     whereClause.examName = examNameFilter;
   }
+  const academicYear = req.query.academic_year;
+  if (academicYear) {
+    whereClause.academicYear = academicYear;
+  }
 
   // Fetch marks with related subject and teacher data
   const marks = await prisma.mark.findMany({
@@ -294,10 +304,13 @@ router.get("/children/:studentId/marks", async (req, res) => {
     ],
   });
 
-  // Collect all distinct exam names for this student (regardless of filter)
-  // so the frontend can render a dropdown / tabs for exam selection
+  // Collect all distinct exam names for this student in this academic year
+  const allMarksWhere = { studentId };
+  if (academicYear) {
+    allMarksWhere.academicYear = academicYear;
+  }
   const allMarks = await prisma.mark.findMany({
-    where: { studentId },
+    where: allMarksWhere,
     select: { examName: true },
     distinct: ["examName"],
     orderBy: { examName: "asc" },
@@ -351,9 +364,15 @@ router.get("/children/:studentId/marks/summary", async (req, res) => {
       .json({ error: "You do not have access to this student's data" });
   }
 
+  const summaryWhere = { studentId };
+  const academicYear = req.query.academic_year;
+  if (academicYear) {
+    summaryWhere.academicYear = academicYear;
+  }
+
   // Fetch all marks for this student, grouped by subject
   const marks = await prisma.mark.findMany({
-    where: { studentId },
+    where: summaryWhere,
     select: {
       score: true,
       maxScore: true,
@@ -459,11 +478,17 @@ router.get("/homework", async (req, res) => {
 
     const classNames = [...new Set(students.map((s) => s.className))];
 
+    const where = {
+      className: { in: classNames },
+    };
+    const academicYear = req.query.academic_year;
+    if (academicYear) {
+      where.academicYear = academicYear;
+    }
+
     // Fetch homeworks for these classes
     const homeworks = await prisma.homework.findMany({
-      where: {
-        className: { in: classNames },
-      },
+      where,
       include: {
         subject: {
           select: { id: true, name: true },

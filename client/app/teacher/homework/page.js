@@ -26,13 +26,16 @@ export default function TeacherHomeworkPage() {
     title: "",
     description: "",
     dueDate: "",
+    academic_year: "2026-2027",
   });
+  const [academicYearFilter, setAcademicYearFilter] = useState("2026-2027");
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+      const query = academicYearFilter ? `?academic_year=${academicYearFilter}` : "";
       const [homeworksRes, dashboardRes] = await Promise.all([
-        apiClient.get("/teacher/homework"),
+        apiClient.get(`/teacher/homework${query}`),
         apiClient.get("/teacher/dashboard"),
       ]);
       setHomeworks(homeworksRes || []);
@@ -42,7 +45,7 @@ export default function TeacherHomeworkPage() {
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, [academicYearFilter, showToast]);
 
   useEffect(() => {
     fetchData();
@@ -70,6 +73,7 @@ export default function TeacherHomeworkPage() {
       title: "",
       description: "",
       dueDate: tomorrowStr,
+      academic_year: "2026-2027",
     });
     setModalOpen(true);
   }
@@ -85,6 +89,7 @@ export default function TeacherHomeworkPage() {
       title: hw.title,
       description: hw.description,
       dueDate: dueDateStr,
+      academic_year: hw.academicYear || hw.academic_year || "2026-2027",
     });
     setModalOpen(true);
   }
@@ -144,6 +149,7 @@ export default function TeacherHomeworkPage() {
         title: form.title.trim(),
         description: form.description.trim(),
         dueDate: form.dueDate,
+        academic_year: form.academic_year,
       };
 
       if (isEditing) {
@@ -165,23 +171,23 @@ export default function TeacherHomeworkPage() {
   const columns = [
     {
       key: "className",
-      label: "Class",
+      label: "CLASS",
       render: (row) => (
-        <span className="font-semibold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg text-xs">
+        <span className="font-semibold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg text-xs uppercase tracking-wider">
           {row.className}
         </span>
       ),
     },
     {
       key: "subject",
-      label: "Subject",
+      label: "SUBJECT",
       render: (row) => (
-        <span className="font-medium text-slate-700">{row.subject?.name || "—"}</span>
+        <span className="font-medium text-slate-700">{(row.subject?.name || '—').toUpperCase()}</span>
       ),
     },
     {
       key: "title",
-      label: "Notebooks",
+      label: "NOTEBOOKS",
       render: (row) => (
         <div>
           <div className="font-semibold text-slate-900">{row.title}</div>
@@ -193,7 +199,7 @@ export default function TeacherHomeworkPage() {
     },
     {
       key: "dueDate",
-      label: "Due Date",
+      label: "DUE DATE",
       render: (row) => {
         const isPast = new Date(row.dueDate) < new Date().setHours(0, 0, 0, 0);
         return (
@@ -201,14 +207,14 @@ export default function TeacherHomeworkPage() {
             {new Date(row.dueDate).toLocaleDateString(undefined, {
               dateStyle: "medium",
             })}
-            {isPast && " (Overdue)"}
+            {isPast && " (OVERDUE)"}
           </span>
         );
       },
     },
     {
       key: "createdAt",
-      label: "Posted Date",
+      label: "POSTED DATE",
       render: (row) => (
         <span className="text-slate-500 text-xs">
           {new Date(row.createdAt).toLocaleDateString(undefined, {
@@ -219,7 +225,7 @@ export default function TeacherHomeworkPage() {
     },
     {
       key: "actions",
-      label: "Actions",
+      label: "ACTIONS",
       render: (row) => (
         <div className="flex items-center gap-2 justify-end">
           <button
@@ -250,67 +256,97 @@ export default function TeacherHomeworkPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-1">Homework (HW)</h1>
-          <p className="text-slate-500 text-sm">
-            Assign and track homework for your student classes.
+          <h1 className="text-2xl lg:text-3xl font-semibold text-slate-900 mb-1 tracking-wider uppercase bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent">HOMEWORK</h1>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">
+            ASSIGN AND TRACK HOMEWORK FOR YOUR STUDENT CLASSES.
           </p>
         </div>
         <button
           onClick={openAddModal}
           disabled={classes.length === 0}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-sm shadow-blue-500/20 hover:shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-200 shadow-sm shadow-blue-500/20 hover:shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <span>➕</span> Post Homework
+          POST HOMEWORK
         </button>
       </div>
 
       {/* Homework List */}
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
-        <h2 className="text-base font-bold text-slate-900">Homework Assignments Log</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-2">
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">HOMEWORK ASSIGNMENTS LOG</h2>
+          
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-bold tracking-wider text-slate-500 uppercase">ACADEMIC YEAR:</label>
+            <select
+              value={academicYearFilter}
+              onChange={(e) => setAcademicYearFilter(e.target.value)}
+              className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[120px] uppercase tracking-wider"
+            >
+              <option value="2025-2026">2025-2026</option>
+              <option value="2026-2027">2026-2027</option>
+              <option value="2027-2028">2027-2028</option>
+            </select>
+          </div>
+        </div>
         <DataTable
           columns={columns}
           data={homeworks}
           loading={loading}
-          emptyMessage="No homework records found."
+          emptyMessage="NO HOMEWORK RECORDS FOUND."
           searchable
-          searchPlaceholder="Search notebooks..."
+          searchPlaceholder="SEARCH NOTEBOOKS..."
         />
       </div>
 
       {/* Post Homework Modal */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={isEditing ? "Edit Student Homework" : "Post Student Homework"}>
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={isEditing ? "EDIT HOMEWORK" : "POST HOMEWORK"}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                Class *
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                CLASS *
               </label>
               <select
                 value={form.className}
                 onChange={(e) => setForm({ ...form, className: e.target.value })}
-                className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               >
                 {classes.map((c) => (
                   <option key={c} value={c}>
-                    {c}
+                    {c?.toUpperCase()}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                Subject *
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                ACADEMIC YEAR *
+              </label>
+              <select
+                value={form.academic_year}
+                onChange={(e) => setForm({ ...form, academic_year: e.target.value })}
+                className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              >
+                <option value="2025-2026">2025-2026</option>
+                <option value="2026-2027">2026-2027</option>
+                <option value="2027-2028">2027-2028</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                SUBJECT *
               </label>
               <select
                 value={form.subjectId}
                 onChange={(e) => setForm({ ...form, subjectId: e.target.value })}
-                className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               >
-                <option value="">Select Subject...</option>
+                <option value="">SELECT SUBJECT...</option>
                 {availableSubjects.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name}
+                    {s.name?.toUpperCase()}
                   </option>
                 ))}
               </select>
@@ -318,44 +354,44 @@ export default function TeacherHomeworkPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-              Notebooks *
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              NOTEBOOKS *
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. 192 Pages Ruling, Physics Homework Notebook"
+              placeholder="E.G. 192 PAGES RULING, PHYSICS HOMEWORK NOTEBOOK"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
-            <p className="text-[11px] text-slate-400 mt-1">Specify what notebook the students need for this homework.</p>
+            <p className="text-[11px] text-slate-400 mt-1 uppercase font-semibold tracking-wide">SPECIFY WHAT NOTEBOOK THE STUDENTS NEED FOR THIS HOMEWORK.</p>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-              Description / Instructions *
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              DESCRIPTION / INSTRUCTIONS *
             </label>
             <textarea
               required
               rows={4}
-              placeholder="Write the questions, pages to read, or submission guidelines..."
+              placeholder="WRITE THE QUESTIONS, PAGES TO READ, OR SUBMISSION GUIDELINES..."
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-              Due Date *
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              DUE DATE *
             </label>
             <input
               type="date"
               required
               value={form.dueDate}
               onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
           </div>
 
@@ -363,16 +399,16 @@ export default function TeacherHomeworkPage() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              className="px-5 py-2.5 text-xs font-bold tracking-wider uppercase text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
             >
-              Cancel
+              CANCEL
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 shadow-sm disabled:opacity-50"
+              className="px-5 py-2.5 text-xs font-bold tracking-wider uppercase text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 shadow-sm disabled:opacity-50"
             >
-              {submitting ? (isEditing ? "Saving..." : "Assigning...") : (isEditing ? "Save Changes" : "Assign Homework")}
+              {submitting ? (isEditing ? "SAVING..." : "ASSIGNING...") : (isEditing ? "SAVE CHANGES" : "ASSIGN HOMEWORK")}
             </button>
           </div>
         </form>
@@ -382,9 +418,9 @@ export default function TeacherHomeworkPage() {
         isOpen={!!deleteTarget}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
-        title="Delete Homework"
-        message={`Are you sure you want to delete this homework? This cannot be undone.`}
-        confirmText="Delete"
+        title="DELETE HOMEWORK"
+        message={`ARE YOU SURE YOU WANT TO DELETE THIS HOMEWORK? THIS CANNOT BE UNDONE.`}
+        confirmText="DELETE"
         type="danger"
       />
     </div>

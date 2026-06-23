@@ -9,9 +9,8 @@ import { apiClient } from "@/lib/api";
 const TABS = [
   {
     id: "admin",
-    label: "Admin",
-    icon: "🛡️",
-    gradient: "from-emerald-500 to-teal-500",
+    label: "ADMIN",
+    gradient: "from-emerald-500 via-teal-500 to-cyan-500",
     gradientBg: "from-emerald-600 to-teal-600",
     focusRing: "focus:ring-emerald-500/20 focus:border-emerald-500/50",
     shadow: "shadow-emerald-500/20",
@@ -22,9 +21,8 @@ const TABS = [
   },
   {
     id: "teacher",
-    label: "Teacher",
-    icon: "📚",
-    gradient: "from-blue-500 to-cyan-500",
+    label: "TEACHER",
+    gradient: "from-blue-500 via-indigo-500 to-purple-500",
     gradientBg: "from-blue-600 to-cyan-600",
     focusRing: "focus:ring-blue-500/20 focus:border-blue-500/50",
     shadow: "shadow-blue-500/20",
@@ -35,9 +33,8 @@ const TABS = [
   },
   {
     id: "parent",
-    label: "Parent",
-    icon: "👨‍👩‍👧",
-    gradient: "from-purple-500 to-pink-500",
+    label: "PARENT",
+    gradient: "from-purple-500 via-fuchsia-500 to-pink-500",
     gradientBg: "from-purple-600 to-pink-600",
     focusRing: "focus:ring-purple-500/20 focus:border-purple-500/50",
     shadow: "shadow-purple-500/20",
@@ -218,40 +215,38 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto animate-fade-in-up">
+    <div className="w-full max-w-md mx-auto animate-fade-in-up relative group">
+      {/* Glowing background blur effect */}
+      <div className={`absolute -inset-1 bg-gradient-to-r ${currentTab.gradient} rounded-2xl opacity-10 blur-xl group-hover:opacity-15 transition-all duration-500`} />
+
       {/* Card */}
-      <div className="glass-strong rounded-2xl overflow-hidden">
+      <div className="glass-strong rounded-2xl overflow-hidden relative border border-white/20 shadow-2xl">
         {/* Tab Bar */}
-        <div className="flex border-b border-slate-100">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id);
-                setError("");
-                setSuccessMessage("");
-                setIsResettingPassword(false);
-                setShowPassword(false);
-                setShowResetPassword(false);
-              }}
-              className={`flex-1 py-4 px-3 text-sm font-medium transition-all duration-300 relative ${
-                activeTab === tab.id
-                  ? "text-slate-900 font-semibold"
-                  : "text-slate-400 hover:text-slate-600"
-              }`}
-            >
-              <span className="flex items-center justify-center gap-2">
-                <span className="text-lg">{tab.icon}</span>
+        <div className="p-1.5 bg-slate-100/80 backdrop-blur-sm rounded-t-2xl flex gap-1.5 mx-6 mt-6">
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setError("");
+                  setSuccessMessage("");
+                  setIsResettingPassword(false);
+                  setShowPassword(false);
+                  setShowResetPassword(false);
+                }}
+                className={`flex-1 py-2.5 px-3 text-xs font-bold tracking-wider rounded-xl transition-all duration-300 relative ${
+                  isActive
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-400 hover:text-slate-600"
+                }`}
+              >
                 <span>{tab.label}</span>
-              </span>
-              {/* Active indicator */}
-              {activeTab === tab.id && (
-                <div
-                  className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r ${tab.gradient} transition-all duration-300`}
-                />
-              )}
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
 
         {/* Form Content */}
@@ -259,11 +254,11 @@ export default function LoginForm() {
           {/* Role badge */}
           <div className="flex justify-center mb-6">
             <div
-              className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full ${currentTab.bgAccent} border ${currentTab.borderAccent}`}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full ${currentTab.bgAccent} border ${currentTab.borderAccent} shadow-sm`}
             >
-              <span className="text-sm">{currentTab.icon}</span>
-              <span className={`text-xs font-semibold ${currentTab.accent} uppercase tracking-wider`}>
-                {currentTab.label} Login
+              <span className={`w-1.5 h-1.5 rounded-full bg-current ${currentTab.accent}`} />
+              <span className={`text-[10px] font-bold ${currentTab.accent} tracking-wider`}>
+                {currentTab.label} LOGIN
               </span>
             </div>
           </div>
@@ -272,25 +267,37 @@ export default function LoginForm() {
           {activeTab === "admin" && (
             <form onSubmit={handleSubmit} className="space-y-5 tab-content-enter">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  onKeyDown={handleKeyDown}
-                  placeholder=""
-                  className={`w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
-                  autoComplete="email"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Password
+                <label className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                  EMAIL ADDRESS
                 </label>
                 <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    placeholder=""
+                    className={`w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                    autoComplete="email"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                  PASSWORD
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
@@ -298,7 +305,7 @@ export default function LoginForm() {
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                     placeholder=""
-                    className={`w-full pl-4 pr-11 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                    className={`w-full pl-11 pr-11 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                     autoComplete="current-password"
                   />
                   <button
@@ -334,15 +341,15 @@ export default function LoginForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-3.5 bg-gradient-to-r ${currentTab.gradientBg} hover:opacity-90 text-white font-semibold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${currentTab.shadow} ${currentTab.hoverShadow} hover:scale-[1.01] active:scale-[0.99]`}
+                className={`w-full py-3.5 bg-gradient-to-r ${currentTab.gradient} hover:opacity-95 text-white font-bold tracking-wider rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${currentTab.shadow} ${currentTab.hoverShadow} hover:scale-[1.01] active:scale-[0.99] uppercase`}
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Signing in...
+                    SIGNING IN...
                   </span>
                 ) : (
-                  "Sign In"
+                  "SIGN IN"
                 )}
               </button>
             </form>
@@ -353,7 +360,7 @@ export default function LoginForm() {
             isResettingPassword ? (
               <form onSubmit={handleResetSubmit} className="space-y-5 tab-content-enter">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-800 mb-1">Reset Password</h3>
+                  <h3 className="text-xs font-bold text-slate-800 mb-1 uppercase tracking-wider">RESET PASSWORD</h3>
                   <p className="text-[11px] text-slate-500 mb-2 leading-normal">
                     {activeTab === "teacher" 
                       ? "Enter your Employee ID and secret reset code to set a new password."
@@ -362,59 +369,85 @@ export default function LoginForm() {
                 </div>
                 {activeTab === "teacher" ? (
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Employee ID
+                    <label className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                      EMPLOYEE ID
                     </label>
-                    <input
-                      type="text"
-                      value={resetForm.employeeId}
-                      onChange={(e) => setResetForm({ ...resetForm, employeeId: e.target.value.toUpperCase() })}
-                      onKeyDown={handleKeyDown}
-                      placeholder=""
-                      className={`w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
-                    />
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 0-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a3 3 0 100-6 3 3 0 000 6zm5 6a3 3 0 11-6 0h6z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        value={resetForm.employeeId}
+                        onChange={(e) => setResetForm({ ...resetForm, employeeId: e.target.value.toUpperCase() })}
+                        onKeyDown={handleKeyDown}
+                        placeholder=""
+                        className={`w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Mobile Number
+                    <label className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                      MOBILE NUMBER
                     </label>
-                    <input
-                      type="tel"
-                      value={resetForm.mobile}
-                      onChange={(e) => setResetForm({ ...resetForm, mobile: e.target.value.replace(/\D/g, "").slice(0, 10) })}
-                      onKeyDown={handleKeyDown}
-                      placeholder="10-digit mobile number"
-                      maxLength={10}
-                      className={`w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
-                    />
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="tel"
+                        value={resetForm.mobile}
+                        onChange={(e) => setResetForm({ ...resetForm, mobile: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                        onKeyDown={handleKeyDown}
+                        placeholder="10-DIGIT MOBILE NUMBER"
+                        maxLength={10}
+                        className={`w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                      />
+                    </div>
                   </div>
                 )}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Secret Reset Code
-                  </label>
-                  <input
-                    type="text"
-                    value={resetForm.resetCode}
-                    onChange={(e) => setResetForm({ ...resetForm, resetCode: e.target.value.toUpperCase() })}
-                    onKeyDown={handleKeyDown}
-                    placeholder="e.g. ABC123"
-                    className={`w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    New Password
+                  <label className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                    SECRET RESET CODE
                   </label>
                   <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m-3.418-4.037L10.4 7.25c-.15.03-.312.008-.455-.078l-2.02-1.212a1 1 0 00-1.08.067l-2.5 1.875a1 1 0 00-.37.788v7.414a2 2 0 002 2h7.828a2 2 0 002-2V9.828a2 2 0 00-.586-1.414l-3.212-3.212z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      value={resetForm.resetCode}
+                      onChange={(e) => setResetForm({ ...resetForm, resetCode: e.target.value.toUpperCase() })}
+                      onKeyDown={handleKeyDown}
+                      placeholder="E.G. ABC123"
+                      className={`w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                    NEW PASSWORD
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
                     <input
                       type={showResetPassword ? "text" : "password"}
                       value={resetForm.newPassword}
                       onChange={(e) => setResetForm({ ...resetForm, newPassword: e.target.value })}
                       onKeyDown={handleKeyDown}
                       placeholder=""
-                      className={`w-full pl-4 pr-11 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                      className={`w-full pl-11 pr-11 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                     />
                     <button
                       type="button"
@@ -439,17 +472,22 @@ export default function LoginForm() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Confirm Password
+                  <label className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                    CONFIRM PASSWORD
                   </label>
                   <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
                     <input
                       type={showResetPassword ? "text" : "password"}
                       value={resetForm.confirmPassword}
                       onChange={(e) => setResetForm({ ...resetForm, confirmPassword: e.target.value })}
                       onKeyDown={handleKeyDown}
                       placeholder=""
-                      className={`w-full pl-4 pr-11 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                      className={`w-full pl-11 pr-11 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                     />
                     <button
                       type="button"
@@ -485,9 +523,9 @@ export default function LoginForm() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full py-3.5 bg-gradient-to-r ${currentTab.gradientBg} hover:opacity-90 text-white font-semibold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${currentTab.shadow} ${currentTab.hoverShadow}`}
+                    className={`w-full py-3.5 bg-gradient-to-r ${currentTab.gradient} hover:opacity-95 text-white font-bold tracking-wider rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${currentTab.shadow} ${currentTab.hoverShadow} uppercase`}
                   >
-                    {loading ? "Resetting..." : "Reset Password"}
+                    {loading ? "RESETTING..." : "RESET PASSWORD"}
                   </button>
                   <button
                     type="button"
@@ -495,9 +533,9 @@ export default function LoginForm() {
                       setIsResettingPassword(false);
                       setError("");
                     }}
-                    className="w-full py-1 text-slate-500 hover:text-slate-700 text-xs transition-colors"
+                    className="w-full py-1 text-slate-500 hover:text-slate-700 text-xs font-bold tracking-wider transition-colors uppercase"
                   >
-                    Back to Sign In
+                    BACK TO SIGN IN
                   </button>
                 </div>
               </form>
@@ -505,42 +543,56 @@ export default function LoginForm() {
               <form onSubmit={handleSubmit} className="space-y-5 tab-content-enter">
                 {activeTab === "teacher" ? (
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Employee ID
+                    <label className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                      EMPLOYEE ID
                     </label>
-                    <input
-                      type="text"
-                      name="employeeId"
-                      value={formData.employeeId}
-                      onChange={handleInputChange}
-                      onKeyDown={handleKeyDown}
-                      placeholder=""
-                      className={`w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
-                      autoComplete="username"
-                    />
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 0-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a3 3 0 100-6 3 3 0 000 6zm5 6a3 3 0 11-6 0h6z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        name="employeeId"
+                        value={formData.employeeId}
+                        onChange={handleInputChange}
+                        onKeyDown={handleKeyDown}
+                        placeholder=""
+                        className={`w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                        autoComplete="username"
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Mobile Number
+                    <label className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                      MOBILE NUMBER
                     </label>
-                    <input
-                      type="tel"
-                      name="mobile"
-                      value={formData.mobile}
-                      onChange={(e) => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, "").slice(0, 10) })}
-                      onKeyDown={handleKeyDown}
-                      placeholder="10-digit mobile number"
-                      maxLength={10}
-                      className={`w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
-                      autoComplete="username"
-                    />
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="tel"
+                        name="mobile"
+                        value={formData.mobile}
+                        onChange={(e) => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                        onKeyDown={handleKeyDown}
+                        placeholder="10-DIGIT MOBILE NUMBER"
+                        maxLength={10}
+                        className={`w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                        autoComplete="username"
+                      />
+                    </div>
                   </div>
                 )}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-slate-700">
-                      Password
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      PASSWORD
                     </label>
                     <button
                       type="button"
@@ -554,12 +606,17 @@ export default function LoginForm() {
                           setResetForm((prev) => ({ ...prev, mobile: formData.mobile }));
                         }
                       }}
-                      className="text-xs text-blue-600 hover:text-blue-700 transition-colors focus:outline-none"
+                      className="text-[10px] font-bold tracking-wider text-blue-600 hover:text-blue-700 transition-colors focus:outline-none uppercase"
                     >
-                      Forgot password?
+                      FORGOT PASSWORD?
                     </button>
                   </div>
                   <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
                     <input
                       type={showPassword ? "text" : "password"}
                       name="password"
@@ -567,7 +624,7 @@ export default function LoginForm() {
                       onChange={handleInputChange}
                       onKeyDown={handleKeyDown}
                       placeholder=""
-                      className={`w-full pl-4 pr-11 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
+                      className={`w-full pl-11 pr-11 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none ${currentTab.focusRing} focus:ring-2 transition-all duration-200`}
                       autoComplete="current-password"
                     />
                     <button
@@ -610,15 +667,15 @@ export default function LoginForm() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`w-full py-3.5 bg-gradient-to-r ${currentTab.gradientBg} hover:opacity-90 text-white font-semibold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${currentTab.shadow} ${currentTab.hoverShadow} hover:scale-[1.01] active:scale-[0.99]`}
+                  className={`w-full py-3.5 bg-gradient-to-r ${currentTab.gradient} hover:opacity-95 text-white font-bold tracking-wider rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${currentTab.shadow} ${currentTab.hoverShadow} hover:scale-[1.01] active:scale-[0.99] uppercase`}
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
                       <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Signing in...
+                      SIGNING IN...
                     </span>
                   ) : (
-                    "Sign In"
+                    "SIGN IN"
                   )}
                 </button>
               </form>
@@ -628,8 +685,8 @@ export default function LoginForm() {
       </div>
 
       {/* Footer */}
-      <p className="text-center text-xs text-slate-600 mt-6">
-        Secure login powered by JWT authentication
+      <p className="text-center text-[10px] font-bold text-slate-500 tracking-widest uppercase mt-6">
+        SECURE LOGIN POWERED BY JWT AUTHENTICATION
       </p>
     </div>
   );

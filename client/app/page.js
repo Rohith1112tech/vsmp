@@ -24,10 +24,10 @@ export default function Home() {
       <div className="flex flex-col items-center gap-6 animate-fade-in">
         {/* Logo / Icon */}
         <div className="relative">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-indigo-500/20">
-            <span className="text-3xl">🎓</span>
+          <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-2xl shadow-slate-200 border border-slate-100">
+            <img src="/logo.png" alt="Logo" className="w-13 h-13 object-contain" />
           </div>
-          <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 opacity-20 blur-lg" />
+          <div className="absolute -inset-1 rounded-2xl bg-emerald-500/10 opacity-20 blur-lg" />
         </div>
 
         {/* Loading spinner */}

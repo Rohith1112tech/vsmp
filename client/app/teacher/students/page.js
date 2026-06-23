@@ -113,26 +113,26 @@ export default function TeacherStudentsPage() {
   const columns = [
     {
       key: "name",
-      label: "Student Name",
+      label: "STUDENT NAME",
       render: (row) => (
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold">
             {(row.name || '?').charAt(0).toUpperCase()}
           </div>
-          <span className="font-semibold text-slate-800">{row.name || '—'}</span>
+          <span className="font-semibold text-slate-800">{row.name?.toUpperCase() || '—'}</span>
         </div>
       ),
     },
     {
       key: "parentMobile",
-      label: "Parent Mobile",
+      label: "PARENT MOBILE",
       render: (row) => (
         <span className="text-slate-500 font-mono text-xs">{row.parentMobile || row.parent_mobile || "—"}</span>
       ),
     },
     {
       key: "parentResetCode",
-      label: "Parent Reset Code",
+      label: "PARENT RESET CODE",
       render: (row) => (
         <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 text-xs font-semibold font-mono">
           {row.parent?.resetCode || "—"}
@@ -146,20 +146,20 @@ export default function TeacherStudentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-1">Students</h1>
-          <p className="text-slate-500 text-sm">
-            View student list and register new students (Class Teachers only).
+          <h1 className="text-2xl lg:text-3xl font-semibold text-slate-900 mb-1 tracking-wider uppercase bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent">STUDENTS</h1>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">
+            VIEW STUDENT LIST AND REGISTER NEW STUDENTS (CLASS TEACHERS ONLY).
           </p>
         </div>
         {isClassTeacherOfSelected && (
           <button
             onClick={openAddModal}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl shadow-sm transition-all duration-200"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold tracking-wider rounded-xl shadow-sm transition-all duration-200 uppercase"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            Add Student
+            ADD STUDENT
           </button>
         )}
       </div>
@@ -167,39 +167,39 @@ export default function TeacherStudentsPage() {
       {/* Class Selector Dropdown */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-3">
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Select Class
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
+            SELECT CLASS
           </label>
           <select
             value={selectedClass}
             onChange={(e) => setSelectedClass(e.target.value)}
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           >
-            <option value="">Choose Class...</option>
+            <option value="">CHOOSE CLASS...</option>
             {classes.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>{c?.toUpperCase()}</option>
             ))}
           </select>
         </div>
 
         {selectedClass && (
           <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col justify-between animate-fade-in">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Role in Class
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              ROLE IN CLASS
             </span>
             <div className="mt-2">
-              <span className={`inline-flex items-center px-3 py-1 rounded-xl text-sm font-bold border ${
+              <span className={`inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold border uppercase tracking-wide ${
                 isClassTeacherOfSelected 
                   ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
                   : "bg-blue-50 text-blue-700 border-blue-200"
               }`}>
-                {isClassTeacherOfSelected ? "🏫 Class Teacher" : "📖 Subject Teacher"}
+                {isClassTeacherOfSelected ? "CLASS TEACHER" : "SUBJECT TEACHER"}
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 mt-1 leading-normal">
+            <p className="text-[10px] text-slate-400 mt-1 leading-normal uppercase font-bold tracking-wide">
               {isClassTeacherOfSelected 
-                ? "You can add students to this class section." 
-                : "Only the designated Class Teacher can add students."}
+                ? "YOU CAN ADD STUDENTS TO THIS CLASS SECTION." 
+                : "ONLY THE DESIGNATED CLASS TEACHER CAN ADD STUDENTS."}
             </p>
           </div>
         )}
@@ -209,11 +209,11 @@ export default function TeacherStudentsPage() {
       {selectedClass ? (
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4 animate-fade-in-up">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-slate-900">
-              Students in {selectedClass}
+            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              STUDENTS IN {selectedClass?.toUpperCase()}
             </h2>
-            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-              {students.length} students
+            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-wider">
+              {students.length} STUDENTS
             </span>
           </div>
 
@@ -221,19 +221,19 @@ export default function TeacherStudentsPage() {
             columns={columns}
             data={students}
             loading={loading}
-            emptyMessage={`No student records found in ${selectedClass}.`}
+            emptyMessage={`NO STUDENT RECORDS FOUND IN ${selectedClass?.toUpperCase()}.`}
             searchable
-            searchPlaceholder="Search class students..."
+            searchPlaceholder="SEARCH CLASS STUDENTS..."
           />
         </div>
       ) : (
         <div className="py-12 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center p-6 space-y-2">
-          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-xl">
-            👥
+          <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center">
+            <img src="/logo.png" alt="Logo" className="w-9 h-9 object-contain" />
           </div>
-          <h3 className="text-sm font-semibold text-slate-800">No Class Selected</h3>
-          <p className="text-xs text-slate-400 max-w-sm">
-            Please choose a class from the dropdown above to view student directories.
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">NO CLASS SELECTED</h3>
+          <p className="text-xs text-slate-400 max-w-sm uppercase font-semibold tracking-wide">
+            PLEASE CHOOSE A CLASS FROM THE DROPDOWN ABOVE TO VIEW STUDENT DIRECTORIES.
           </p>
         </div>
       )}
@@ -242,12 +242,12 @@ export default function TeacherStudentsPage() {
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={`Add Student to Class ${selectedClass}`}
+        title={`ADD STUDENT TO CLASS ${selectedClass?.toUpperCase()}`}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Full Name *
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              FULL NAME *
             </label>
             <input
               type="text"
@@ -260,8 +260,8 @@ export default function TeacherStudentsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Class
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              CLASS
             </label>
             <input
               type="text"
@@ -272,8 +272,8 @@ export default function TeacherStudentsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Parent Mobile *
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              PARENT MOBILE NUMBER *
             </label>
             <input
               type="tel"
@@ -285,13 +285,13 @@ export default function TeacherStudentsPage() {
                 })
               }
               className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              placeholder="10-digit mobile number"
+              placeholder="e.g. 9876543210"
               maxLength={10}
               required
             />
             {form.parent_mobile && form.parent_mobile.length < 10 && (
-              <p className="text-xs text-amber-600 mt-1">
-                {10 - form.parent_mobile.length} more digits needed
+              <p className="text-xs text-amber-600 mt-1 uppercase font-bold tracking-wide">
+                {10 - form.parent_mobile.length} MORE DIGITS NEEDED
               </p>
             )}
           </div>
@@ -300,16 +300,16 @@ export default function TeacherStudentsPage() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-5 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              className="px-5 py-2.5 text-xs font-bold tracking-wider uppercase text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
             >
-              Cancel
+              CANCEL
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 disabled:opacity-50"
+              className="px-5 py-2.5 text-xs font-bold tracking-wider uppercase text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 disabled:opacity-50"
             >
-              {submitting ? "Saving..." : "Add Student"}
+              {submitting ? "SAVING..." : "ADD STUDENT"}
             </button>
           </div>
         </form>

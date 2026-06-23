@@ -547,6 +547,7 @@ router.get("/students", async (req, res) => {
     const { search } = req.query;
     // "class" is a reserved word in JS, so use bracket notation
     const className = req.query.class;
+    const academicYear = req.query.academic_year;
 
     const where = {};
     if (search) {
@@ -554,6 +555,9 @@ router.get("/students", async (req, res) => {
     }
     if (className) {
       where.className = className;
+    }
+    if (academicYear) {
+      where.academicYear = academicYear;
     }
 
     const [students, total] = await Promise.all([
@@ -598,6 +602,14 @@ router.get("/students/:id", async (req, res) => {
       return res.status(400).json({ error: "Invalid student ID" });
     }
 
+    const academicYear = req.query.academic_year;
+    const attendanceWhere = {};
+    const marksWhere = {};
+    if (academicYear) {
+      attendanceWhere.academicYear = academicYear;
+      marksWhere.academicYear = academicYear;
+    }
+
     const student = await prisma.student.findUnique({
       where: { id },
       include: {
@@ -610,9 +622,11 @@ router.get("/students/:id", async (req, res) => {
           },
         },
         attendance: {
+          where: attendanceWhere,
           orderBy: { date: "desc" },
         },
         marks: {
+          where: marksWhere,
           include: {
             subject: { select: { id: true, name: true } },
             teacher: { select: { id: true, name: true } },
@@ -653,7 +667,7 @@ router.get("/students/:id", async (req, res) => {
  */
 router.post("/students", async (req, res) => {
   try {
-    const { name, class_name, parent_mobile } = req.body;
+    const { name, class_name, parent_mobile, academic_year } = req.body;
 
     if (!name || !class_name || !parent_mobile) {
       return res
@@ -675,6 +689,7 @@ router.post("/students", async (req, res) => {
         name,
         className: class_name,
         parentMobile: parent_mobile,
+        academicYear: academic_year || "2026-2027",
       },
       include: {
         parent: {
@@ -710,7 +725,7 @@ router.put("/students/:id", async (req, res) => {
       return res.status(400).json({ error: "Invalid student ID" });
     }
 
-    const { name, class_name, parent_mobile } = req.body;
+    const { name, class_name, parent_mobile, academic_year } = req.body;
 
     const existing = await prisma.student.findUnique({ where: { id } });
     if (!existing) {
@@ -731,6 +746,7 @@ router.put("/students/:id", async (req, res) => {
     if (name) updateData.name = name;
     if (class_name) updateData.className = class_name;
     if (parent_mobile) updateData.parentMobile = parent_mobile;
+    if (academic_year) updateData.academicYear = academic_year;
 
     const updated = await prisma.student.update({
       where: { id },
@@ -1136,13 +1152,17 @@ router.delete("/classes/:id", async (req, res) => {
 router.get("/classes/:className/performance", async (req, res) => {
   try {
     const { className } = req.params;
+    const academicYear = req.query.academic_year || "2026-2027";
 
     // Find all students in this class
     const students = await prisma.student.findMany({
-      where: { className },
+      where: { className, academicYear },
       include: {
-        attendance: true,
+        attendance: {
+          where: { academicYear },
+        },
         marks: {
+          where: { academicYear },
           include: {
             subject: { select: { id: true, name: true } },
             teacher: { select: { id: true, name: true } },
@@ -1265,7 +1285,7 @@ router.delete("/announcements/:id", async (req, res) => {
  */
 router.put("/profile", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
     const adminId = req.user.id;
 
     if (!email || !email.trim()) {
@@ -1283,10 +1303,11 @@ router.put("/profile", async (req, res) => {
 
     const updateData = {
       auth_identifier: email.trim(),
+      name: name !== undefined ? name.trim() : null,
     };
 
     if (password && password.trim()) {
-      updateData.password_hash = await bcrypt.hash(password.trim(), 10);
+      updateData.password_hash = await bcryptjs.hash(password.trim(), 10);
     }
 
     const updatedUser = await prisma.user.update({
@@ -1300,6 +1321,7 @@ router.put("/profile", async (req, res) => {
         id: updatedUser.id,
         role: updatedUser.role,
         auth_identifier: updatedUser.auth_identifier,
+        name: updatedUser.name,
       }
     });
   } catch (error) {

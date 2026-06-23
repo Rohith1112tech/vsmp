@@ -8,10 +8,10 @@ import Link from "next/link";
 import { apiClient } from "@/lib/api";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/parent/dashboard", icon: "📊" },
-  { label: "Attendance", href: "/parent/attendance", icon: "📅" },
-  { label: "Marks", href: "/parent/marks", icon: "📝" },
-  { label: "HW", href: "/parent/homework", icon: "📓" },
+  { label: "DASHBOARD", href: "/parent/dashboard" },
+  { label: "ATTENDANCE", href: "/parent/attendance" },
+  { label: "MARKS",      href: "/parent/marks" },
+  { label: "HOMEWORK",   href: "/parent/homework" },
 ];
 
 function ParentShell({ children }) {
@@ -221,8 +221,8 @@ function ParentShell({ children }) {
       }`}>
         <div className="p-6 border-b border-blue-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-              <span className="text-xl">🎓</span>
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+              <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
             </div>
             <div>
               <h1 className="text-sm font-bold text-white tracking-tight">SMP</h1>
@@ -236,12 +236,11 @@ function ParentShell({ children }) {
             const isActive = pathname.startsWith(item.href);
             return (
               <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wider uppercase transition-all duration-200 ${
                   isActive
                     ? "bg-white/10 text-white border-l-4 border-white -ml-px"
                     : "text-blue-200 hover:text-white hover:bg-white/5"
                 }`}>
-                <span className="text-base">{item.icon}</span>
                 <span>{item.label}</span>
               </Link>
             );
@@ -254,13 +253,13 @@ function ParentShell({ children }) {
               {(user?.auth_identifier || "P").charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{user?.auth_identifier || "Parent"}</p>
-              <p className="text-[11px] text-blue-300 truncate">Parent</p>
+              <p className="text-sm font-medium text-white truncate">{(user?.auth_identifier || "PARENT").toUpperCase()}</p>
+              <p className="text-[9px] text-blue-300 font-bold uppercase tracking-widest truncate">PARENT</p>
             </div>
           </div>
           <button onClick={logout}
-            className="mt-2 w-full flex items-center gap-2 px-4 py-2 text-sm text-blue-200 hover:text-white hover:bg-white/5 rounded-xl transition-all duration-200">
-            <span>↩️</span><span>Sign Out</span>
+            className="mt-2 w-full flex items-center justify-center px-3 py-2 text-[10px] font-bold tracking-wider uppercase text-blue-200 hover:text-white hover:bg-white/10 rounded-xl bg-white/5 transition-all duration-200">
+            SIGN OUT
           </button>
         </div>
       </aside>

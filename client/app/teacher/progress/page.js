@@ -177,7 +177,7 @@ export default function ProgressCardPage() {
               <option value="">Select Class</option>
               {classTeacherClasses.map((cls) => (
                 <option key={cls} value={cls}>
-                  {cls}
+                  {cls?.toUpperCase()}
                 </option>
               ))}
             </select>
@@ -197,7 +197,7 @@ export default function ProgressCardPage() {
               </option>
               {students.map((stu) => (
                 <option key={stu.id} value={stu.id}>
-                  {stu.name}
+                  {stu.name?.toUpperCase()}
                 </option>
               ))}
             </select>
@@ -213,8 +213,8 @@ export default function ProgressCardPage() {
               className="w-full px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-slate-50 disabled:text-slate-400"
             >
               <option value="">Select Exam</option>
-              <option value="Half Yearly">Half Yearly</option>
-              <option value="Annual">Annual</option>
+              <option value="Half Yearly">HALF YEARLY</option>
+              <option value="Annual">ANNUAL</option>
             </select>
           </div>
         </div>
@@ -251,11 +251,11 @@ export default function ProgressCardPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
               <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">Student Profile</div>
-              <h2 className="text-xl font-extrabold text-slate-950">{progressCard.student?.name}</h2>
+              <h2 className="text-xl font-extrabold text-slate-950">{progressCard.student?.name?.toUpperCase()}</h2>
               <div className="flex items-center gap-3 text-sm text-slate-500 mt-1">
-                <span>Class: <span className="font-semibold text-slate-700">{progressCard.student?.className}</span></span>
+                <span>CLASS: <span className="font-semibold text-slate-700">{progressCard.student?.className?.toUpperCase()}</span></span>
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                <span>Exam: <span className="font-semibold text-slate-700">{progressCard.examName}</span></span>
+                <span>EXAM: <span className="font-semibold text-slate-700">{progressCard.examName?.toUpperCase()}</span></span>
               </div>
             </div>
 
@@ -331,7 +331,7 @@ export default function ProgressCardPage() {
                       >
                         {/* Subject Name */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-slate-900 truncate">{m.subjectName}</p>
+                          <p className="text-sm font-semibold text-slate-900 truncate">{m.subjectName?.toUpperCase()}</p>
                           <p className="text-xs font-semibold text-slate-500 sm:hidden mt-0.5">
                             Int: <span className="font-bold text-slate-800">{internal}</span>/20 | 
                             Thy: <span className="font-bold text-slate-800">{theory}</span>/80 | 

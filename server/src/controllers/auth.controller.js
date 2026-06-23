@@ -88,6 +88,7 @@ export async function login(req, res) {
         id: user.id,
         role: user.role,
         auth_identifier: user.auth_identifier,
+        name: user.name,
         mustChangePassword: mustChangePassword,
       },
     });

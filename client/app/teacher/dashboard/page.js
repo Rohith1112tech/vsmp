@@ -4,12 +4,15 @@ import { useState, useEffect } from "react";
 import { apiClient } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import Link from "next/link";
+import Modal from "@/components/ui/Modal";
 
 export default function TeacherDashboard() {
   const { showToast } = useToast();
   const [data, setData] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isClassesModalOpen, setIsClassesModalOpen] = useState(false);
+  const [isSubjectsModalOpen, setIsSubjectsModalOpen] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -37,41 +40,71 @@ export default function TeacherDashboard() {
     ? [...new Map(data.assignments.filter((a) => a.subject).map((a) => [a.subject.id, a.subject])).values()]
     : [];
 
+  const classDetails = uniqueClasses.map((clsName) => {
+    const clsAssignments = data.assignments.filter((a) => a.className === clsName);
+    const isClassTeacher = clsAssignments.some((a) => a.role === "CLASS_TEACHER");
+    const subjects = clsAssignments
+      .filter((a) => a.role === "SUBJECT_TEACHER" && a.subject)
+      .map((a) => a.subject.name.toUpperCase());
+    return {
+      className: clsName,
+      isClassTeacher,
+      subjects,
+    };
+  });
+
+  const subjectDetails = uniqueSubjects.map((sub) => {
+    const subAssignments = data.assignments.filter((a) => a.subject && a.subject.id === sub.id);
+    const classes = [...new Set(subAssignments.map((a) => a.className))];
+    return {
+      subjectName: sub.name.toUpperCase(),
+      classes,
+    };
+  });
+
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-1">Dashboard</h1>
+        <h1 className="text-2xl lg:text-3xl font-semibold text-slate-900 mb-1 tracking-wider uppercase bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent">
+          DASHBOARD
+        </h1>
         <p className="text-slate-500">
-          Welcome{data?.teacher?.name ? `, ${data.teacher.name}` : ""}. Here are your assignments.
+          Welcome{data?.teacher?.name ? `, ${data.teacher.name.toUpperCase()}` : ""}. Here are your assignments.
         </p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
         {loading ? (
-          [...Array(3)].map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-              <div className="h-12 w-12 bg-slate-100 rounded-xl animate-pulse mb-4" />
-              <div className="h-8 w-16 bg-slate-100 rounded-lg animate-pulse mb-2" />
-              <div className="h-4 w-24 bg-slate-100 rounded-lg animate-pulse" />
+          [...Array(2)].map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center">
+              <div className="h-3 w-24 bg-slate-100 rounded animate-pulse mb-2.5" />
+              <div className="h-9 w-12 bg-slate-100 rounded-lg animate-pulse" />
             </div>
           ))
         ) : (
           <>
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4"><span className="text-2xl">🏫</span></div>
-              <p className="text-3xl font-bold text-slate-900 mb-1">{uniqueClasses.length}</p>
-              <p className="text-sm text-slate-500">Assigned Classes</p>
+            <div
+              onClick={() => setIsClassesModalOpen(true)}
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-300 text-center flex flex-col items-center justify-center cursor-pointer group"
+            >
+              <p className="text-[10px] font-bold text-slate-400 group-hover:text-slate-500 transition-colors tracking-widest uppercase mb-1">
+                ASSIGNED CLASSES
+              </p>
+              <p className="text-4xl font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">
+                {uniqueClasses.length}
+              </p>
             </div>
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4"><span className="text-2xl">📖</span></div>
-              <p className="text-3xl font-bold text-slate-900 mb-1">{uniqueSubjects.length}</p>
-              <p className="text-sm text-slate-500">Subjects Teaching</p>
-            </div>
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4"><span className="text-2xl">📋</span></div>
-              <p className="text-3xl font-bold text-slate-900 mb-1">{data?.assignments?.length || 0}</p>
-              <p className="text-sm text-slate-500">Total Assignments</p>
+            <div
+              onClick={() => setIsSubjectsModalOpen(true)}
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-300 text-center flex flex-col items-center justify-center cursor-pointer group"
+            >
+              <p className="text-[10px] font-bold text-slate-400 group-hover:text-slate-500 transition-colors tracking-widest uppercase mb-1">
+                SUBJECTS TEACHING
+              </p>
+              <p className="text-4xl font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">
+                {uniqueSubjects.length}
+              </p>
             </div>
           </>
         )}
@@ -79,8 +112,8 @@ export default function TeacherDashboard() {
 
       {/* Notice Board */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-8">
-        <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-          <span>📢</span> Notice Board
+        <h2 className="text-lg font-semibold text-slate-900 mb-4 tracking-wider uppercase">
+          NOTICE BOARD
         </h2>
         {loading ? (
           <div className="space-y-3">
@@ -144,6 +177,95 @@ export default function TeacherDashboard() {
           </Link>
         )}
       </div>
+
+      {/* Class Details Modal */}
+      <Modal
+        isOpen={isClassesModalOpen}
+        onClose={() => setIsClassesModalOpen(false)}
+        title="ASSIGNED CLASSES"
+        size="md"
+      >
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+          {classDetails.length === 0 ? (
+            <p className="text-slate-500 text-center py-4 text-sm font-semibold">NO ASSIGNED CLASSES</p>
+          ) : (
+            classDetails.map((item) => (
+              <div
+                key={item.className}
+                className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex flex-col gap-2"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-slate-800 text-lg">{item.className?.toUpperCase()}</span>
+                  {item.isClassTeacher && (
+                    <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md uppercase tracking-wider">
+                      CLASS TEACHER
+                    </span>
+                  )}
+                </div>
+                {item.subjects.length > 0 && (
+                  <div className="flex flex-col gap-1 mt-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      SUBJECTS TEACHING
+                    </span>
+                    <div className="flex flex-wrap gap-1.5 mt-0.5">
+                      {item.subjects.map((sub) => (
+                        <span
+                          key={sub}
+                          className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded uppercase"
+                        >
+                          {sub}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </Modal>
+
+      {/* Subject Details Modal */}
+      <Modal
+        isOpen={isSubjectsModalOpen}
+        onClose={() => setIsSubjectsModalOpen(false)}
+        title="SUBJECTS TEACHING"
+        size="md"
+      >
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+          {subjectDetails.length === 0 ? (
+            <p className="text-slate-500 text-center py-4 text-sm font-semibold">NO SUBJECTS ASSIGNED</p>
+          ) : (
+            subjectDetails.map((item) => (
+              <div
+                key={item.subjectName}
+                className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex flex-col gap-2"
+              >
+                <span className="font-extrabold text-slate-800 text-lg uppercase">
+                  {item.subjectName}
+                </span>
+                {item.classes.length > 0 && (
+                  <div className="flex flex-col gap-1 mt-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      CLASSES
+                    </span>
+                    <div className="flex flex-wrap gap-1.5 mt-0.5">
+                      {item.classes.map((cls) => (
+                        <span
+                          key={cls}
+                          className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded uppercase"
+                        >
+                          {cls?.toUpperCase()}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

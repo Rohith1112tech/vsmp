@@ -33,6 +33,7 @@ function AttendanceContent() {
   const [attendance, setAttendance] = useState(null);
   const [loadingChildren, setLoadingChildren] = useState(true);
   const [loadingAttendance, setLoadingAttendance] = useState(false);
+  const [academicYear, setAcademicYear] = useState("2026-2027");
 
   // Fetch children list
   useEffect(() => {
@@ -56,13 +57,13 @@ function AttendanceContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showToast]);
 
-  // Fetch attendance when child/month/year changes
+  // Fetch attendance when child/month/year/academicYear changes
   const fetchAttendance = useCallback(async () => {
     if (!selectedChild) return;
     setLoadingAttendance(true);
     try {
       const res = await apiClient.get(
-        `/parent/children/${selectedChild}/attendance?month=${month}&year=${year}`
+        `/parent/children/${selectedChild}/attendance?month=${month}&year=${year}&academic_year=${academicYear}`
       );
       setAttendance(res);
     } catch (err) {
@@ -71,7 +72,7 @@ function AttendanceContent() {
     } finally {
       setLoadingAttendance(false);
     }
-  }, [selectedChild, month, year, showToast]);
+  }, [selectedChild, month, year, academicYear, showToast]);
 
   useEffect(() => {
     fetchAttendance();
@@ -109,16 +110,16 @@ function AttendanceContent() {
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-1">Attendance Records</h1>
-        <p className="text-slate-500">Track your child&apos;s daily attendance.</p>
+        <h1 className="text-2xl lg:text-3xl font-semibold text-slate-900 mb-1 tracking-wider uppercase bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent">ATTENDANCE RECORDS</h1>
+        <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">TRACK YOUR CHILD&apos;S DAILY ATTENDANCE.</p>
       </div>
 
       {/* Filters */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           {/* Child selector */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Child</label>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">CHILD</label>
             {loadingChildren ? (
               <div className="h-10 bg-slate-100 rounded-xl animate-pulse" />
             ) : (
@@ -127,19 +128,33 @@ function AttendanceContent() {
                 onChange={(e) => setSelectedChild(e.target.value)}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               >
-                <option value="">Select a child</option>
+                <option value="">SELECT A CHILD</option>
                 {children.map((child) => (
                   <option key={child.id} value={child.id}>
-                    {child.name} — {child.className}
+                    {child.name?.toUpperCase()} — {child.className?.toUpperCase()}
                   </option>
                 ))}
               </select>
             )}
           </div>
 
+          {/* Academic Year selector */}
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">FILTER BY ACADEMIC YEAR</label>
+            <select
+              value={academicYear}
+              onChange={(e) => setAcademicYear(e.target.value)}
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            >
+              <option value="2025-2026">2025-2026</option>
+              <option value="2026-2027">2026-2027</option>
+              <option value="2027-2028">2027-2028</option>
+            </select>
+          </div>
+
           {/* Month selector */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Month</label>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">MONTH</label>
             <select
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
@@ -147,7 +162,7 @@ function AttendanceContent() {
             >
               {MONTHS.map((m) => (
                 <option key={m.value} value={m.value}>
-                  {m.label}
+                  {m.label.toUpperCase()}
                 </option>
               ))}
             </select>
@@ -155,7 +170,7 @@ function AttendanceContent() {
 
           {/* Year selector */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Year</label>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">YEAR</label>
             <select
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
@@ -204,12 +219,12 @@ function AttendanceContent() {
           {attendance.student && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-lg font-bold">
-                {attendance.student.name?.charAt(0) || "S"}
+                {(attendance.student.name?.charAt(0) || "S").toUpperCase()}
               </div>
               <div>
-                <h3 className="text-base font-semibold text-slate-900">{attendance.student.name}</h3>
+                <h3 className="text-base font-semibold text-slate-900">{attendance.student.name?.toUpperCase()}</h3>
                 <p className="text-sm text-slate-500">
-                  {attendance.student.className} &bull; {MONTHS.find((m) => m.value === attendance.month)?.label} {attendance.year}
+                  {attendance.student.className?.toUpperCase()} &bull; {MONTHS.find((m) => m.value === attendance.month)?.label} {attendance.year}
                 </p>
               </div>
             </div>
@@ -220,15 +235,15 @@ function AttendanceContent() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 text-center">
                 <p className="text-3xl font-bold text-slate-900">{attendance.summary.total}</p>
-                <p className="text-xs text-slate-500 mt-1 font-medium">Total Days</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">TOTAL DAYS</p>
               </div>
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 text-center">
                 <p className="text-3xl font-bold text-emerald-600">{attendance.summary.present}</p>
-                <p className="text-xs text-emerald-600 mt-1 font-medium">Present</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mt-1">PRESENT</p>
               </div>
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 text-center">
                 <p className="text-3xl font-bold text-red-600">{attendance.summary.absent}</p>
-                <p className="text-xs text-red-600 mt-1 font-medium">Absent</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-red-600 mt-1">ABSENT</p>
               </div>
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 text-center">
                 {(() => {
@@ -237,7 +252,7 @@ function AttendanceContent() {
                   return (
                     <>
                       <p className={`text-3xl font-bold ${colors.text}`}>{pct.toFixed(1)}%</p>
-                      <p className={`text-xs mt-1 font-medium ${colors.text}`}>Attendance %</p>
+                      <p className={`text-xs font-bold uppercase tracking-wider mt-1 ${colors.text}`}>ATTENDANCE %</p>
                     </>
                   );
                 })()}
@@ -245,39 +260,16 @@ function AttendanceContent() {
             </div>
           )}
 
-          {/* Progress bar */}
-          {attendance.summary && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-700">Attendance Rate</span>
-                <span className="text-sm font-bold text-slate-900">
-                  {Number(attendance.summary.percentage || 0).toFixed(1)}%
-                </span>
-              </div>
-              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    getPercentageColor(Number(attendance.summary.percentage) || 0).bar
-                  }`}
-                  style={{ width: `${Math.min(Number(attendance.summary.percentage) || 0, 100)}%` }}
-                />
-              </div>
-              <div className="flex items-center justify-between mt-2 text-xs text-slate-500">
-                <span>{attendance.summary.present} present</span>
-                <span>{attendance.summary.absent} absent</span>
-              </div>
-            </div>
-          )}
+
 
           {/* Attendance records */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100">
-              <h3 className="text-base font-semibold text-slate-900">Daily Records</h3>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">DAILY RECORDS</h3>
             </div>
             {attendance.attendance?.length === 0 ? (
               <div className="p-8 text-center">
-                <span className="text-4xl mb-3 block">📋</span>
-                <p className="text-slate-500 text-sm">No attendance records found for this period.</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">NO ATTENDANCE RECORDS FOUND FOR THIS PERIOD.</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100">

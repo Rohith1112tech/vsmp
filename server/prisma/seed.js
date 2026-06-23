@@ -115,18 +115,19 @@ async function main() {
   // + create/update pattern instead.
 
   const studentsData = [
-    { name: "Aarav Sharma", className: "10-A", parentMobile: "9876543210" },
-    { name: "Priya Sharma", className: "10-A", parentMobile: "9876543210" },
+    { name: "Aarav Sharma", className: "10-A", parentMobile: "9876543210", academicYear: "2026-2027" },
+    { name: "Priya Sharma", className: "10-A", parentMobile: "9876543210", academicYear: "2026-2027" },
   ];
 
   const createdStudents = [];
   for (const data of studentsData) {
-    // Check if student already exists by name + class + parent
+    // Check if student already exists by name + class + parent + academicYear
     let student = await prisma.student.findFirst({
       where: {
         name: data.name,
         className: data.className,
         parentMobile: data.parentMobile,
+        academicYear: data.academicYear,
       },
     });
 

@@ -222,28 +222,28 @@ export default function TeachersPage() {
   const columns = [
     {
       key: "name",
-      label: "Name",
+      label: "NAME",
       render: (row) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">
+          <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold uppercase">
             {(row.name || "?").charAt(0)}
           </div>
-          <span className="font-medium text-slate-900">{row.name || "—"}</span>
+          <span className="font-semibold text-slate-900 uppercase tracking-wide">{(row.name || "—").toUpperCase()}</span>
         </div>
       ),
     },
     {
       key: "empId",
-      label: "Employee ID",
+      label: "EMPLOYEE ID",
       render: (row) => (
         <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-mono">
-          {row.empId || row.emp_id}
+          {(row.empId || row.emp_id)?.toUpperCase()}
         </span>
       ),
     },
     {
       key: "phone",
-      label: "Phone Number",
+      label: "PHONE NUMBER",
       render: (row) => (
         <span className="text-slate-600 text-sm">
           {row.phone || "—"}
@@ -252,7 +252,7 @@ export default function TeachersPage() {
     },
     {
       key: "resetCode",
-      label: "Secret Reset Code",
+      label: "SECRET RESET CODE",
       render: (row) => (
         <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold font-mono">
           🔑 {row.resetCode || "—"}
@@ -261,14 +261,14 @@ export default function TeachersPage() {
     },
     {
       key: "assignments",
-      label: "Assigned",
+      label: "ASSIGNED",
       render: (row) => {
         const count = row.assignments?.length || 0;
         return count > 0 ? (
           <div className="flex flex-wrap gap-1">
             {row.assignments.slice(0, 3).map((a) => (
               <span key={a.id} className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[11px] font-medium border border-blue-100">
-                {a.className} · {a.subject?.name}
+                {a.className?.toUpperCase()} · {a.subject?.name?.toUpperCase()}
               </span>
             ))}
             {count > 3 && (
@@ -287,45 +287,47 @@ export default function TeachersPage() {
   const classNames = classes.map((c) => c.name || c);
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Teachers</h1>
-          <p className="text-slate-500 text-sm mt-1">Manage your school&apos;s teaching staff</p>
+    <>
+      <div className="p-6 lg:p-8 max-w-7xl mx-auto animate-fade-in">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900 tracking-wider uppercase bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent">TEACHERS</h1>
+            <p className="text-slate-500 text-sm mt-1">Manage your school&apos;s teaching staff</p>
+          </div>
+          <button
+            onClick={openAddModal}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold tracking-wider rounded-xl shadow-sm transition-colors uppercase"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            ADD TEACHER
+          </button>
         </div>
-        <button
-          onClick={openAddModal}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl shadow-sm transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Add Teacher
-        </button>
-      </div>
 
-      <DataTable
-        columns={columns}
-        data={teachers}
-        loading={loading}
-        onEdit={openEditModal}
-        onDelete={(t) => setDeleteTarget(t)}
-        emptyMessage="No teachers found. Add your first teacher to get started."
-        searchable
-        searchPlaceholder="Search teachers..."
-      />
+        <DataTable
+          columns={columns}
+          data={teachers}
+          loading={loading}
+          onEdit={openEditModal}
+          onDelete={(t) => setDeleteTarget(t)}
+          emptyMessage="No teachers found. Add your first teacher to get started."
+          searchable
+          searchPlaceholder="SEARCH TEACHERS..."
+        />
+      </div>
 
       {/* Add/Edit Modal */}
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingTeacher ? "Edit Teacher" : "Add New Teacher"}
+        title={editingTeacher ? `EDIT TEACHER: ${editingTeacher.name.toUpperCase()}` : "ADD NEW TEACHER"}
       >
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* ── Basic Info ── */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Name *</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5 uppercase">Full Name *</label>
               <input
                 type="text"
                 value={form.name}
@@ -335,7 +337,7 @@ export default function TeachersPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Employee ID *</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5 uppercase">Employee ID *</label>
               <input
                 type="text"
                 value={form.emp_id}
@@ -345,7 +347,7 @@ export default function TeachersPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone Number</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5 uppercase">Phone Number</label>
               <input
                 type="text"
                 value={form.phone}
@@ -389,7 +391,7 @@ export default function TeachersPage() {
                 {pendingAssignments.map((a, idx) => (
                   <div key={idx} className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
                     <span className="text-blue-600 text-xs font-semibold flex-1">
-                      {a.class_name} · {a.subject_name || subjects.find((s) => String(s.id) === String(a.subject_id))?.name || `Subject #${a.subject_id}`}
+                      {a.class_name?.toUpperCase()} · {(a.subject_name || subjects.find((s) => String(s.id) === String(a.subject_id))?.name || `Subject #${a.subject_id}`).toUpperCase()}
                       {a.existing_id && <span className="ml-1.5 text-blue-400 font-normal">(existing)</span>}
                     </span>
                     <button
@@ -411,21 +413,21 @@ export default function TeachersPage() {
               <select
                 value={assignForm.class_name}
                 onChange={(e) => setAssignForm({ ...assignForm, class_name: e.target.value })}
-                className="flex-1 px-3 py-2 text-sm bg-white border border-slate-300 rounded-xl text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-3 py-2 text-sm bg-white border border-slate-300 rounded-xl text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase font-semibold text-xs tracking-wider"
               >
                 <option value="">Class</option>
                 {classNames.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>{c?.toUpperCase()}</option>
                 ))}
               </select>
               <select
                 value={assignForm.subject_id}
                 onChange={(e) => setAssignForm({ ...assignForm, subject_id: e.target.value })}
-                className="flex-1 px-3 py-2 text-sm bg-white border border-slate-300 rounded-xl text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-3 py-2 text-sm bg-white border border-slate-300 rounded-xl text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase font-semibold text-xs tracking-wider"
               >
                 <option value="">Subject</option>
                 {subjects.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
+                  <option key={s.id} value={s.id}>{s.name?.toUpperCase()}</option>
                 ))}
               </select>
               <button
@@ -446,16 +448,16 @@ export default function TeachersPage() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-5 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              className="px-5 py-2.5 text-xs font-bold tracking-wider uppercase text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
             >
-              Cancel
+              CANCEL
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors disabled:opacity-50"
+              className="px-5 py-2.5 text-xs font-bold tracking-wider uppercase text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors disabled:opacity-50"
             >
-              {submitting ? "Saving..." : editingTeacher ? "Update Teacher" : "Add Teacher"}
+              {submitting ? "SAVING..." : editingTeacher ? "UPDATE TEACHER" : "ADD TEACHER"}
             </button>
           </div>
         </form>
@@ -466,11 +468,11 @@ export default function TeachersPage() {
         isOpen={!!deleteTarget}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
-        title="Delete Teacher"
-        message={`Are you sure you want to delete ${deleteTarget?.name}? This will also remove their assignments and marks.`}
-        confirmText="Delete"
+        title="DELETE TEACHER"
+        message={`Are you sure you want to delete ${deleteTarget?.name?.toUpperCase()}? This will also remove their assignments and marks.`}
+        confirmText="DELETE"
         type="danger"
       />
-    </div>
+    </>
   );
 }

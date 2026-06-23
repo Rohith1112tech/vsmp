@@ -13,11 +13,12 @@ function ParentHomeworkContent() {
   const [selectedDate, setSelectedDate] = useState(() => {
     return new Date().toISOString().split("T")[0];
   });
+  const [academicYear, setAcademicYear] = useState("2026-2027");
 
   const fetchHomeworkData = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await apiClient.get("/parent/homework");
+      const res = await apiClient.get(`/parent/homework?academic_year=${academicYear}`);
       setHomeworks(res.homeworks || []);
       setChildren(res.children || []);
     } catch (err) {
@@ -25,7 +26,7 @@ function ParentHomeworkContent() {
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, [academicYear, showToast]);
 
   useEffect(() => {
     fetchHomeworkData();
@@ -56,29 +57,29 @@ function ParentHomeworkContent() {
     const diffTime = due - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays < 0) return { label: "Overdue", style: "bg-red-50 text-red-700 border-red-200" };
-    if (diffDays === 0) return { label: "Due Today", style: "bg-amber-50 text-amber-700 border-amber-200" };
-    if (diffDays === 1) return { label: "Due Tomorrow", style: "bg-blue-50 text-blue-700 border-blue-200" };
-    return { label: `Due in ${diffDays} days`, style: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+    if (diffDays < 0) return { label: "OVERDUE", style: "bg-red-50 text-red-700 border-red-200" };
+    if (diffDays === 0) return { label: "DUE TODAY", style: "bg-amber-50 text-amber-700 border-amber-200" };
+    if (diffDays === 1) return { label: "DUE TOMORROW", style: "bg-blue-50 text-blue-700 border-blue-200" };
+    return { label: `DUE IN ${diffDays} DAYS`, style: "bg-emerald-50 text-emerald-700 border-emerald-200" };
   };
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-1">Homework (HW)</h1>
-        <p className="text-slate-500 text-sm">
-          Keep track of homework assignments posted by all teachers for your children.
+        <h1 className="text-2xl lg:text-3xl font-semibold text-slate-900 mb-1 tracking-wider uppercase bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent">HOMEWORK</h1>
+        <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">
+          KEEP TRACK OF HOMEWORK ASSIGNMENTS POSTED BY ALL TEACHERS FOR YOUR CHILDREN.
         </p>
       </div>
 
       {/* Filters */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
           {/* Child Selector */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-              Filter by Child
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              FILTER BY CHILD
             </label>
             {loading ? (
               <div className="h-10 bg-slate-100 rounded-xl animate-pulse" />
@@ -88,20 +89,36 @@ function ParentHomeworkContent() {
                 onChange={(e) => setSelectedChildId(e.target.value)}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               >
-                <option value="all">All Children</option>
+                <option value="all">ALL CHILDREN</option>
                 {children.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name} ({c.className})
-                </option>
-              ))}
-            </select>
+                    {c.name?.toUpperCase()} ({c.className?.toUpperCase()})
+                  </option>
+                ))}
+              </select>
             )}
+          </div>
+
+          {/* Academic Year Selector */}
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              FILTER BY ACADEMIC YEAR
+            </label>
+            <select
+              value={academicYear}
+              onChange={(e) => setAcademicYear(e.target.value)}
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            >
+              <option value="2025-2026">2025-2026</option>
+              <option value="2026-2027">2026-2027</option>
+              <option value="2027-2028">2027-2028</option>
+            </select>
           </div>
 
           {/* Date Selector */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-              Filter by Assigned Date
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              FILTER BY ASSIGNED DATE
             </label>
             <input
               type="date"
@@ -117,18 +134,18 @@ function ParentHomeworkContent() {
               <button
                 type="button"
                 onClick={() => setSelectedDate("")}
-                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-all"
+                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider rounded-xl transition-all"
               >
-                Show All Dates
+                SHOW ALL DATES
               </button>
             )}
             {selectedDate !== new Date().toISOString().split("T")[0] && (
               <button
                 type="button"
                 onClick={() => setSelectedDate(new Date().toISOString().split("T")[0])}
-                className="px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-xl transition-all"
+                className="px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider rounded-xl transition-all"
               >
-                Go to Today
+                GO TO TODAY
               </button>
             )}
           </div>
@@ -156,12 +173,9 @@ function ParentHomeworkContent() {
         </div>
       ) : filteredHomeworks.length === 0 ? (
         <div className="py-16 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center p-6 space-y-3">
-          <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-2xl">
-            📓
-          </div>
-          <h3 className="text-lg font-semibold text-slate-800">No Homework Assigned</h3>
-          <p className="text-sm text-slate-400 max-w-md">
-            Excellent! There is no homework assigned {selectedDate ? `on ${new Date(selectedDate).toLocaleDateString(undefined, { dateStyle: "medium" })}` : "at the moment"} for {selectedChildId === "all" ? "any of your children's classes" : `${selectedChild?.name}'s class (${selectedChild?.className})`}.
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">NO HOMEWORK ASSIGNED</h3>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-400 max-w-md">
+            NO HOMEWORK ASSIGNED {selectedDate ? `ON ${new Date(selectedDate).toLocaleDateString(undefined, { dateStyle: "medium" }).toUpperCase()}` : "AT THE MOMENT"} FOR {selectedChildId === "all" ? "ANY OF YOUR CHILDREN'S CLASSES" : `${selectedChild?.name?.toUpperCase()}'S CLASS (${selectedChild?.className?.toUpperCase()})`}.
           </p>
         </div>
       ) : (
@@ -177,17 +191,17 @@ function ParentHomeworkContent() {
                 {/* Card Top */}
                 <div className="p-6 space-y-4 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                      📖 {hw.subject?.name || "Subject"}
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+                      {hw.subject?.name?.toUpperCase() || "SUBJECT"}
                     </span>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${daysInfo.style}`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${daysInfo.style}`}>
                       {daysInfo.label}
                     </span>
                   </div>
 
                   <div className="space-y-2">
                     <div>
-                      <p className="text-[11px] font-bold text-slate-500">Class {hw.className}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">CLASS {hw.className?.toUpperCase()}</p>
                     </div>
                     <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap font-normal">
                       {hw.description}
@@ -195,7 +209,7 @@ function ParentHomeworkContent() {
                   </div>
 
                   <div className="space-y-1.5 border-t border-slate-100 pt-3">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Notebook Needed</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NOTEBOOK NEEDED</p>
                     <div className="text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200/60 px-3 py-2 rounded-xl">
                       {hw.title}
                     </div>
@@ -205,16 +219,16 @@ function ParentHomeworkContent() {
                 {/* Card Bottom Info */}
                 <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-col gap-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500">
-                      Posted by: <strong className="text-slate-700 font-semibold">{hw.teacher?.name || "Teacher"}</strong>
+                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      POSTED BY: <strong className="text-slate-700 font-bold">{hw.teacher?.name?.toUpperCase() || "TEACHER"}</strong>
                     </span>
                   </div>
                   
 
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 mt-2 border-t border-slate-100/50 pt-2">
-                    <span>Assigned: {new Date(hw.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}</span>
-                    <span className="font-semibold text-slate-700">Due: {new Date(hw.dueDate).toLocaleDateString(undefined, { dateStyle: "medium" })}</span>
+                  <div className="flex items-center justify-between text-[10px] mt-2 border-t border-slate-100/50 pt-2">
+                    <span className="font-bold uppercase tracking-wider text-slate-400">ASSIGNED: {new Date(hw.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" }).toUpperCase()}</span>
+                    <span className="font-bold uppercase tracking-wider text-slate-700">DUE: {new Date(hw.dueDate).toLocaleDateString(undefined, { dateStyle: "medium" }).toUpperCase()}</span>
                   </div>
                 </div>
               </div>

@@ -21,6 +21,7 @@ export default function StudentRecordPage() {
   // Selections
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [academicYear, setAcademicYear] = useState("2026-2027");
   
   const [performanceData, setPerformanceData] = useState({ classAverage: null, students: [] });
   const [loading, setLoading] = useState(false);
@@ -47,10 +48,10 @@ export default function StudentRecordPage() {
     }
   }, []);
 
-  const fetchClassPerformance = useCallback(async (className) => {
+  const fetchClassPerformance = useCallback(async (className, acadYear) => {
     try {
       setLoading(true);
-      const res = await apiClient.get(`/admin/classes/${encodeURIComponent(className)}/performance`);
+      const res = await apiClient.get(`/admin/classes/${encodeURIComponent(className)}/performance?academic_year=${acadYear}`);
       setPerformanceData(res || { classAverage: null, students: [] });
     } catch (err) {
       showToast(err.data?.error || "Failed to load class performance record", "error");
@@ -59,10 +60,10 @@ export default function StudentRecordPage() {
     }
   }, [showToast]);
 
-  const fetchStudentDetails = useCallback(async (id) => {
+  const fetchStudentDetails = useCallback(async (id, acadYear) => {
     try {
       setLoadingDetails(true);
-      const res = await apiClient.get(`/admin/students/${id}`);
+      const res = await apiClient.get(`/admin/students/${id}?academic_year=${acadYear}`);
       setStudentDetails(res);
     } catch (err) {
       showToast(err.data?.error || "Failed to load student details", "error");
@@ -77,51 +78,51 @@ export default function StudentRecordPage() {
 
   useEffect(() => {
     if (selectedClass) {
-      fetchClassPerformance(selectedClass);
+      fetchClassPerformance(selectedClass, academicYear);
     } else {
       setPerformanceData({ classAverage: null, students: [] });
     }
-  }, [selectedClass, fetchClassPerformance]);
+  }, [selectedClass, academicYear, fetchClassPerformance]);
 
   useEffect(() => {
     if (viewingStudentId) {
-      fetchStudentDetails(viewingStudentId);
+      fetchStudentDetails(viewingStudentId, academicYear);
     } else {
       setStudentDetails(null);
     }
-  }, [viewingStudentId, fetchStudentDetails]);
+  }, [viewingStudentId, academicYear, fetchStudentDetails]);
 
   const columns = [
     {
       key: "name",
-      label: "Student Name",
+      label: "STUDENT NAME",
       render: (row) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">
-            {(row.name || '?').charAt(0)}
+          <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold uppercase">
+            {(row.name || '?').charAt(0).toUpperCase()}
           </div>
           <button
             onClick={() => {
               setViewingStudentId(row.id);
               setActiveDetailsTab("marks");
             }}
-            className="font-semibold text-slate-800 hover:text-blue-600 hover:underline text-left focus:outline-none transition-all"
+            className="font-semibold text-slate-800 hover:text-blue-600 hover:underline text-left focus:outline-none transition-all uppercase tracking-wide"
           >
-            {row.name || '—'}
+            {row.name?.toUpperCase() || '—'}
           </button>
         </div>
       ),
     },
     {
       key: "parentMobile",
-      label: "Parent Contact",
+      label: "PARENT CONTACT",
       render: (row) => (
         <span className="text-slate-500 font-mono text-xs">{row.parentMobile || "—"}</span>
       ),
     },
     {
       key: "avgMark",
-      label: "Average Score",
+      label: "AVERAGE SCORE",
       render: (row) => (
         <span className={`font-semibold text-sm ${
           row.avgMark === null
@@ -138,7 +139,7 @@ export default function StudentRecordPage() {
     },
     {
       key: "attendancePercent",
-      label: "Attendance Rate",
+      label: "ATTENDANCE RATE",
       render: (row) => (
         <span className={`font-semibold text-sm ${
           row.attendancePercent === null
@@ -162,11 +163,11 @@ export default function StudentRecordPage() {
   const subjectColumns = [
     {
       key: "name",
-      label: "Student Name",
+      label: "STUDENT NAME",
       render: (row) => (
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold flex-shrink-0">
-            {(row.name || '?').charAt(0)}
+            {(row.name || '?').charAt(0).toUpperCase()}
           </div>
           <button
             onClick={() => {
@@ -175,21 +176,21 @@ export default function StudentRecordPage() {
             }}
             className="font-semibold text-slate-800 hover:text-blue-600 hover:underline text-left focus:outline-none transition-all"
           >
-            {row.name || '—'}
+            {row.name?.toUpperCase() || '—'}
           </button>
         </div>
       ),
     },
     {
       key: "parentMobile",
-      label: "Parent Contact",
+      label: "PARENT CONTACT",
       render: (row) => (
         <span className="text-slate-500 font-mono text-xs">{row.parentMobile || "—"}</span>
       ),
     },
     {
       key: "examScores",
-      label: "Exam Scores",
+      label: "EXAM SCORES",
       render: (row) => (
         <div className="flex flex-wrap gap-1.5">
           {row.marks && row.marks.length > 0 ? (
@@ -198,7 +199,7 @@ export default function StudentRecordPage() {
                 key={m.id}
                 className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200"
               >
-                {m.examName}: <strong className="ml-1 text-slate-900">{m.score}/{m.maxScore} ({getGradeLetter(m.score, m.maxScore)})</strong>
+                {m.examName?.toUpperCase()}: <strong className="ml-1 text-slate-900">{m.score}/{m.maxScore}</strong><span className="mx-1 text-slate-300">|</span><strong className="text-slate-600 text-[10px]">GRADE: {getGradeLetter(m.score, m.maxScore)}</strong>
               </span>
             ))
           ) : (
@@ -209,7 +210,7 @@ export default function StudentRecordPage() {
     },
     {
       key: "average",
-      label: "Subject Average",
+      label: "AVERAGE SCORE",
       render: (row) => (
         <span className={`font-semibold text-sm ${
           row.average === null
@@ -220,9 +221,23 @@ export default function StudentRecordPage() {
             ? "text-slate-700"
             : "text-red-500"
         }`}>
-          {row.average !== null ? `${row.average} (${getGradeLetter(row.average, 100)})` : "—"}
+          {row.average !== null ? `${row.average}` : "—"}
         </span>
       ),
+    },
+    {
+      key: "averageGrade",
+      label: "AVERAGE GRADE",
+      render: (row) => {
+        if (row.average === null) return <span className="text-slate-400 text-xs italic">—</span>;
+        const grade = getGradeLetter(row.average, 100);
+        const color = getGradeColor(grade);
+        return (
+          <span className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-lg text-xs font-bold ${color.bg} ${color.text} border ${color.border}`}>
+            {grade}
+          </span>
+        );
+      },
     },
   ];
 
@@ -239,9 +254,9 @@ export default function StudentRecordPage() {
 
   const assignedTeachers = assignments
     .filter((a) => a.className === selectedClass && a.subject?.id === Number(selectedSubject))
-    .map((a) => a.teacher?.name)
+    .map((a) => a.teacher?.name?.toUpperCase())
     .filter(Boolean);
-  const handedBy = assignedTeachers.length > 0 ? assignedTeachers.join(", ") : "Not Assigned";
+  const handedBy = assignedTeachers.length > 0 ? assignedTeachers.join(", ") : "NOT ASSIGNED";
 
   const subjectStudentsData = performanceData.students.map((student) => {
     const studentMarks = (student.marks || []).filter((m) => m.subjectId === Number(selectedSubject));
@@ -295,7 +310,7 @@ export default function StudentRecordPage() {
     const total = subMarks.length;
     return {
       subjectId: sub.id,
-      subjectName: sub.name,
+      subjectName: sub.name.toUpperCase(),
       ...counts,
       total,
     };
@@ -304,10 +319,31 @@ export default function StudentRecordPage() {
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Record</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 tracking-wider uppercase bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent">RECORD</h1>
         <p className="text-slate-500 text-sm mt-1">
           Monitor class averages, subject distributions, and student grade records.
         </p>
+      </div>
+
+      {/* Global Academic Year Filter */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
+        <div>
+          <h2 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-1">
+            ACTIVE ACADEMIC YEAR
+          </h2>
+          <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">
+            Saves and filters marks, attendance rates, and progress reports for this year.
+          </p>
+        </div>
+        <select
+          value={academicYear}
+          onChange={(e) => setAcademicYear(e.target.value)}
+          className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[160px]"
+        >
+          <option value="2025-2026">2025-2026</option>
+          <option value="2026-2027">2026-2027</option>
+          <option value="2027-2028">2027-2028</option>
+        </select>
       </div>
 
       {/* Tab Selector */}
@@ -315,35 +351,35 @@ export default function StudentRecordPage() {
         <button
           type="button"
           onClick={() => setActiveTab("students")}
-          className={`py-3 px-5 text-sm font-semibold transition-colors border-b-2 -mb-px flex-shrink-0 ${
+          className={`py-3 px-5 text-sm font-bold tracking-wider uppercase transition-colors border-b-2 -mb-px flex-shrink-0 ${
             activeTab === "students"
               ? "text-blue-600 border-blue-600"
               : "text-slate-500 border-transparent hover:text-slate-700"
           }`}
         >
-          👤 Student Records
+          STUDENT RECORDS
         </button>
         <button
           type="button"
           onClick={() => setActiveTab("subjects")}
-          className={`py-3 px-5 text-sm font-semibold transition-colors border-b-2 -mb-px flex-shrink-0 ${
+          className={`py-3 px-5 text-sm font-bold tracking-wider uppercase transition-colors border-b-2 -mb-px flex-shrink-0 ${
             activeTab === "subjects"
               ? "text-blue-600 border-blue-600"
               : "text-slate-500 border-transparent hover:text-slate-700"
           }`}
         >
-          📚 Subject Records
+          SUBJECT RECORDS
         </button>
         <button
           type="button"
           onClick={() => setActiveTab("grades")}
-          className={`py-3 px-5 text-sm font-semibold transition-colors border-b-2 -mb-px flex-shrink-0 ${
+          className={`py-3 px-5 text-sm font-bold tracking-wider uppercase transition-colors border-b-2 -mb-px flex-shrink-0 ${
             activeTab === "grades"
               ? "text-blue-600 border-blue-600"
               : "text-slate-500 border-transparent hover:text-slate-700"
           }`}
         >
-          🏅 Grade Records
+          GRADE RECORDS
         </button>
       </div>
 
@@ -352,19 +388,19 @@ export default function StudentRecordPage() {
           {/* Class Selector dropdown and Class Average card */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-3">
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Select Class
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
+                SELECT CLASS
               </label>
               <select
                 value={selectedClass}
                 onChange={(e) => setSelectedClass(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               >
-                <option value="">Choose Class...</option>
+                <option value="">CHOOSE CLASS...</option>
                 {classes.map((cls) => {
                   const name = cls.name || cls;
                   return (
-                    <option key={name} value={name}>{name}</option>
+                    <option key={name} value={name} className="uppercase">{name.toUpperCase()}</option>
                   );
                 })}
               </select>
@@ -373,8 +409,8 @@ export default function StudentRecordPage() {
             {/* Class Average card */}
             {selectedClass && (
               <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col justify-between animate-fade-in">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Class Average
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  CLASS AVERAGE
                 </span>
                 <div className="mt-2 flex items-baseline gap-2">
                   <span className={`text-3xl font-extrabold tracking-tight ${
@@ -400,11 +436,11 @@ export default function StudentRecordPage() {
           {selectedClass ? (
             <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4 animate-fade-in-up">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-slate-900">
-                  Students in {selectedClass}
+                <h2 className="text-base font-bold text-slate-900 uppercase tracking-wider">
+                  STUDENTS IN {selectedClass?.toUpperCase()}
                 </h2>
-                <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                  {performanceData.students.length} students
+                <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                  {performanceData.students.length} STUDENTS
                 </span>
               </div>
 
@@ -412,9 +448,9 @@ export default function StudentRecordPage() {
                 columns={columns}
                 data={performanceData.students}
                 loading={loading}
-                emptyMessage={`No student records found in ${selectedClass}.`}
+                emptyMessage={`NO STUDENT RECORDS FOUND IN ${selectedClass?.toUpperCase()}.`}
                 searchable
-                searchPlaceholder="Search class students..."
+                searchPlaceholder="SEARCH CLASS STUDENTS..."
               />
             </div>
           ) : (
@@ -436,36 +472,36 @@ export default function StudentRecordPage() {
           {/* Subject Records selectors and Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
             <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-3">
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Select Class
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
+                SELECT CLASS
               </label>
               <select
                 value={selectedClass}
                 onChange={(e) => setSelectedClass(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               >
-                <option value="">Choose Class...</option>
+                <option value="">CHOOSE CLASS...</option>
                 {classes.map((cls) => {
                   const name = cls.name || cls;
                   return (
-                    <option key={name} value={name}>{name}</option>
+                    <option key={name} value={name} className="uppercase">{name.toUpperCase()}</option>
                   );
                 })}
               </select>
             </div>
 
             <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-3">
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Select Subject
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
+                SELECT SUBJECT
               </label>
               <select
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               >
-                <option value="">Choose Subject...</option>
+                <option value="">CHOOSE SUBJECT...</option>
                 {subjects.map((sub) => (
-                  <option key={sub.id} value={sub.id}>{sub.name}</option>
+                  <option key={sub.id} value={sub.id} className="uppercase">{sub.name.toUpperCase()}</option>
                 ))}
               </select>
             </div>
@@ -474,8 +510,8 @@ export default function StudentRecordPage() {
               <>
                 {/* Subject Average card */}
                 <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col justify-between animate-fade-in">
-                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    Subject Average
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    SUBJECT AVERAGE
                   </span>
                   <div className="mt-2 flex items-baseline gap-2">
                     <span className={`text-3xl font-extrabold tracking-tight ${
@@ -498,8 +534,8 @@ export default function StudentRecordPage() {
 
                 {/* Handed by card */}
                 <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col justify-between animate-fade-in">
-                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    Handed By
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    HANDED BY
                   </span>
                   <div className="mt-2">
                     <span className="text-lg font-bold text-slate-800 leading-tight block truncate" title={handedBy}>
@@ -517,11 +553,11 @@ export default function StudentRecordPage() {
           {selectedClass && selectedSubject ? (
             <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4 animate-fade-in-up">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-slate-900">
-                  Student Grades in {subjects.find(s => s.id === Number(selectedSubject))?.name} ({selectedClass})
+                <h2 className="text-base font-bold text-slate-900 uppercase tracking-wider">
+                  STUDENT GRADES IN {(subjects.find(s => s.id === Number(selectedSubject))?.name)?.toUpperCase()} ({selectedClass?.toUpperCase()})
                 </h2>
-                <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                  {subjectStudentsData.length} students
+                <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                  {subjectStudentsData.length} STUDENTS
                 </span>
               </div>
 
@@ -529,9 +565,9 @@ export default function StudentRecordPage() {
                 columns={subjectColumns}
                 data={subjectStudentsData}
                 loading={loading}
-                emptyMessage={`No student grades found for this subject in ${selectedClass}.`}
+                emptyMessage={`NO STUDENT GRADES FOUND FOR THIS SUBJECT IN ${selectedClass?.toUpperCase()}.`}
                 searchable
-                searchPlaceholder="Search class students..."
+                searchPlaceholder="SEARCH CLASS STUDENTS..."
               />
             </div>
           ) : (
@@ -553,36 +589,36 @@ export default function StudentRecordPage() {
           {/* Grade Records selectors and Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
             <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-3">
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Select Class
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
+                SELECT CLASS
               </label>
               <select
                 value={selectedClass}
                 onChange={(e) => setSelectedClass(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               >
-                <option value="">Choose Class...</option>
+                <option value="">CHOOSE CLASS...</option>
                 {classes.map((cls) => {
                   const name = cls.name || cls;
                   return (
-                    <option key={name} value={name}>{name}</option>
+                    <option key={name} value={name} className="uppercase">{name.toUpperCase()}</option>
                   );
                 })}
               </select>
             </div>
 
             <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-3">
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Select Subject
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
+                SELECT SUBJECT
               </label>
               <select
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               >
-                <option value="">All Subjects</option>
+                <option value="">ALL SUBJECTS</option>
                 {subjects.map((sub) => (
-                  <option key={sub.id} value={sub.id}>{sub.name}</option>
+                  <option key={sub.id} value={sub.id} className="uppercase">{sub.name.toUpperCase()}</option>
                 ))}
               </select>
             </div>
@@ -745,8 +781,8 @@ export default function StudentRecordPage() {
             </div>
           ) : (
             <div className="py-12 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center p-6 space-y-2">
-              <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-xl">
-                🎓
+              <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center">
+                <img src="/logo.png" alt="Logo" className="w-9 h-9 object-contain" />
               </div>
               <h3 className="text-sm font-semibold text-slate-800">No Class Selected</h3>
               <p className="text-xs text-slate-400 max-w-sm">
@@ -761,7 +797,7 @@ export default function StudentRecordPage() {
       <Modal
         isOpen={!!viewingStudentId}
         onClose={() => setViewingStudentId(null)}
-        title={studentDetails ? `${studentDetails.name}'s Progress Record` : "Loading Records..."}
+        title={studentDetails ? `${studentDetails.name?.toUpperCase()}'S PROGRESS RECORD` : "LOADING RECORDS..."}
       >
         {loadingDetails ? (
           <div className="py-12 flex flex-col items-center justify-center gap-3">
@@ -849,23 +885,35 @@ export default function StudentRecordPage() {
                     <table className="w-full text-left text-xs text-slate-600 border-collapse">
                       <thead>
                         <tr className="border-b border-slate-100 bg-slate-50/50">
-                          <th className="py-2.5 px-3 font-semibold text-slate-500 uppercase tracking-wider">Subject</th>
-                          <th className="py-2.5 px-3 font-semibold text-slate-500 uppercase tracking-wider">Exam</th>
-                          <th className="py-2.5 px-3 font-semibold text-slate-500 uppercase tracking-wider text-right">Score</th>
-                          <th className="py-2.5 px-3 font-semibold text-slate-500 uppercase tracking-wider">Graded By</th>
+                          <th className="py-2.5 px-3 font-semibold text-slate-500 uppercase tracking-wider">SUBJECT</th>
+                          <th className="py-2.5 px-3 font-semibold text-slate-500 uppercase tracking-wider">EXAM</th>
+                          <th className="py-2.5 px-3 font-semibold text-slate-500 uppercase tracking-wider text-right">SCORE</th>
+                          <th className="py-2.5 px-3 font-semibold text-slate-500 uppercase tracking-wider text-center">GRADE</th>
+                          <th className="py-2.5 px-3 font-semibold text-slate-500 uppercase tracking-wider">GRADED BY</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {studentDetails.marks.map((mark) => (
                           <tr key={mark.id} className="hover:bg-slate-50/30">
-                            <td className="py-2.5 px-3 font-medium text-slate-800">{mark.subject?.name}</td>
-                            <td className="py-2.5 px-3">{mark.examName}</td>
+                            <td className="py-2.5 px-3 font-bold uppercase tracking-wider text-slate-800">{(mark.subject?.name || '—').toUpperCase()}</td>
+                            <td className="py-2.5 px-3 font-bold uppercase tracking-wider text-slate-700">{(mark.examName || '—').toUpperCase()}</td>
                             <td className={`py-2.5 px-3 text-right font-bold ${
                               mark.score >= 40 ? "text-slate-800" : "text-red-500"
                             }`}>
-                              {mark.score} / {mark.maxScore || 100} ({getGradeLetter(mark.score, mark.maxScore || 100)})
+                              {mark.score} / {mark.maxScore || 100}
                             </td>
-                            <td className="py-2.5 px-3 text-slate-500">{mark.teacher?.name || "Faculty"}</td>
+                            <td className="py-2.5 px-3 text-center">
+                              {(() => {
+                                const grade = getGradeLetter(mark.score, mark.maxScore || 100);
+                                const color = getGradeColor(grade);
+                                return (
+                                  <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded text-xs font-bold ${color.bg} ${color.text} border ${color.border}`}>
+                                    {grade}
+                                  </span>
+                                );
+                              })()}
+                            </td>
+                            <td className="py-2.5 px-3 font-bold uppercase tracking-wider text-slate-500">{(mark.teacher?.name || 'FACULTY').toUpperCase()}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -887,8 +935,8 @@ export default function StudentRecordPage() {
                     <table className="w-full text-left text-xs text-slate-600 border-collapse">
                       <thead>
                         <tr className="border-b border-slate-100 bg-slate-50/50 sticky top-0">
-                          <th className="py-2 px-3 font-semibold text-slate-500 uppercase tracking-wider bg-slate-50">Date</th>
-                          <th className="py-2 px-3 font-semibold text-slate-500 uppercase tracking-wider bg-slate-50 text-right">Status</th>
+                          <th className="py-2 px-3 font-semibold text-slate-500 uppercase tracking-wider bg-slate-50">DATE</th>
+                          <th className="py-2 px-3 font-semibold text-slate-500 uppercase tracking-wider bg-slate-50 text-right">STATUS</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">

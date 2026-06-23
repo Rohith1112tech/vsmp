@@ -38,6 +38,7 @@ model User {
   id                 Int       @id @default(autoincrement())
   role               Role
   auth_identifier    String    @unique
+  name               String?
   password_hash      String?   // nullable — parents authenticate via OTP (now password)
   mustChangePassword Boolean   @default(true) @map("must_change_password")
   resetCode          String?   @unique @map("reset_code")
@@ -57,6 +58,7 @@ model Student {
   name         String
   className    String   @map("class_name")
   parentMobile String   @map("parent_mobile")
+  academicYear String   @default("2026-2027") @map("academic_year")
 
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -137,6 +139,7 @@ model Attendance {
   studentId Int              @map("student_id")
   date      DateTime
   status    AttendanceStatus
+  academicYear String        @default("2026-2027") @map("academic_year")
 
   // Relations
   student Student @relation(fields: [studentId], references: [id])
@@ -157,14 +160,15 @@ model Mark {
   examName  String @map("exam_name")
   internalScore Float? @map("internal_score")
   theoryScore   Float? @map("theory_score")
+  academicYear String  @default("2026-2027") @map("academic_year")
 
   // Relations
   student Student @relation(fields: [studentId], references: [id])
   subject Subject @relation(fields: [subjectId], references: [id])
   teacher Teacher @relation(fields: [teacherId], references: [id])
 
-  // A student can only have one mark per subject per exam
-  @@unique([studentId, subjectId, examName])
+  // A student can only have one mark per subject per exam per academic year
+  @@unique([studentId, subjectId, examName, academicYear])
   @@map("marks")
 }
 
@@ -194,6 +198,7 @@ model Homework {
   title       String
   description String   @db.Text
   dueDate     DateTime @map("due_date")
+  academicYear String  @default("2026-2027") @map("academic_year")
   createdAt   DateTime @default(now()) @map("created_at")
 
   // Relations

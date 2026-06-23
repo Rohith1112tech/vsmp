@@ -16,6 +16,7 @@ export default function MarksPage() {
   // Selected values
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [academicYear, setAcademicYear] = useState("2026-2027");
   const [examName, setExamName] = useState("");
   const [totalMark, setTotalMark] = useState("100"); // Dynamic max score
   const totalMarkInputRef = useRef(null);
@@ -78,7 +79,7 @@ export default function MarksPage() {
     setScores({});
   }, [selectedSubject]);
 
-  // Load existing exams when class + subject selected
+  // Load existing exams when class + subject + academicYear selected
   useEffect(() => {
     if (!selectedClass || !selectedSubject) {
       setExistingExams([]);
@@ -88,7 +89,7 @@ export default function MarksPage() {
       setLoadingExams(true);
       try {
         const res = await apiClient.get(
-          `/teacher/exams?subject_id=${selectedSubject}&class_name=${encodeURIComponent(selectedClass)}`
+          `/teacher/exams?subject_id=${selectedSubject}&class_name=${encodeURIComponent(selectedClass)}&academic_year=${academicYear}`
         );
         setExistingExams(res.exams || []);
       } catch {
@@ -98,7 +99,7 @@ export default function MarksPage() {
       }
     }
     loadExams();
-  }, [selectedClass, selectedSubject]);
+  }, [selectedClass, selectedSubject, academicYear]);
 
   // Load students and marks when all three filters are set
   const loadMarks = useCallback(async () => {
@@ -106,7 +107,7 @@ export default function MarksPage() {
     setLoadingStudents(true);
     try {
       const res = await apiClient.get(
-        `/teacher/marks?class_name=${encodeURIComponent(selectedClass)}&subject_id=${selectedSubject}&exam_name=${encodeURIComponent(examName.trim())}`
+        `/teacher/marks?class_name=${encodeURIComponent(selectedClass)}&subject_id=${selectedSubject}&exam_name=${encodeURIComponent(examName.trim())}&academic_year=${academicYear}`
       );
       const studentList = res.students || [];
       setStudents(studentList);
@@ -139,7 +140,7 @@ export default function MarksPage() {
     } finally {
       setLoadingStudents(false);
     }
-  }, [selectedClass, selectedSubject, examName, showToast]);
+  }, [selectedClass, selectedSubject, examName, academicYear, showToast]);
 
   // Debounce the marks loading on examName change
   useEffect(() => {
@@ -256,6 +257,7 @@ export default function MarksPage() {
         exam_name: examName.trim(),
         total_mark: isHYOrAnnual ? 100 : maxVal,
         marks,
+        academic_year: academicYear,
       });
       showToast(res.message || `Marks saved for ${res.count} students`, "success");
     } catch (err) {
@@ -282,25 +284,39 @@ export default function MarksPage() {
     <div className="p-6 lg:p-8 max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-1">Student Marks</h1>
-        <p className="text-slate-500">Enter and manage exam marks for your students</p>
+        <h1 className="text-2xl lg:text-3xl font-semibold text-slate-900 mb-1 tracking-wider uppercase bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent">STUDENT MARKS</h1>
+        <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">ENTER AND MANAGE EXAM MARKS FOR YOUR STUDENTS</p>
       </div>
 
       {/* Controls */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+          {/* Academic Year Dropdown */}
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">ACADEMIC YEAR</label>
+            <select
+              value={academicYear}
+              onChange={(e) => setAcademicYear(e.target.value)}
+              className="w-full px-4 py-2.5 text-xs font-bold uppercase tracking-wider bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            >
+              <option value="2025-2026">2025-2026</option>
+              <option value="2026-2027">2026-2027</option>
+              <option value="2027-2028">2027-2028</option>
+            </select>
+          </div>
+
           {/* Class Dropdown */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Class</label>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">CLASS</label>
             {loadingInit ? (
               <div className="h-11 bg-slate-100 rounded-xl animate-pulse" />
             ) : (
               <select
                 value={selectedClass}
                 onChange={(e) => setSelectedClass(e.target.value)}
-                className="w-full px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                className="w-full px-4 py-2.5 text-xs font-bold uppercase tracking-wider bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               >
-                <option value="">Select a class</option>
+                <option value="">SELECT A CLASS</option>
                 {classes.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
@@ -310,23 +326,23 @@ export default function MarksPage() {
 
           {/* Subject Dropdown */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Subject</label>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">SUBJECT</label>
             <select
               value={selectedSubject}
               onChange={(e) => setSelectedSubject(e.target.value)}
               disabled={!selectedClass}
-              className="w-full px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+              className="w-full px-4 py-2.5 text-xs font-bold uppercase tracking-wider bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
             >
-              <option value="">Select a subject</option>
+              <option value="">SELECT A SUBJECT</option>
               {subjectsForClass.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
+                <option key={s.id} value={s.id}>{s.name?.toUpperCase()}</option>
               ))}
             </select>
           </div>
 
           {/* Exam Name Input with suggestions */}
           <div className="relative">
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Exam Name</label>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">EXAM NAME</label>
             <input
               type="text"
               value={examName}
@@ -334,14 +350,14 @@ export default function MarksPage() {
               onFocus={() => setShowExamSuggestions(true)}
               onBlur={() => setTimeout(() => setShowExamSuggestions(false), 200)}
               disabled={!selectedSubject}
-              placeholder={loadingExams ? "Loading exams..." : "e.g. Term 1, Midterm"}
-              className="w-full px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+              placeholder={loadingExams ? "LOADING EXAMS..." : "E.G. TERM 1, MIDTERM"}
+              className="w-full px-4 py-2.5 text-xs font-bold uppercase tracking-wider bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
             />
             {/* Exam suggestions dropdown */}
             {showExamSuggestions && suggestions.length > 0 && (
               <div className="absolute z-20 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden font-sans">
                 <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-b border-slate-100">
-                  Exam Suggestions
+                  EXAM SUGGESTIONS
                 </div>
                 {suggestions.map((exam) => (
                   <button
@@ -362,7 +378,7 @@ export default function MarksPage() {
                       examName === exam ? "text-blue-600 font-medium bg-blue-50/50" : "text-slate-700"
                     }`}
                   >
-                    {exam}
+                    {exam?.toUpperCase()}
                   </button>
                 ))}
               </div>
@@ -371,7 +387,7 @@ export default function MarksPage() {
 
           {/* Total Mark Input */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Total Mark</label>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">TOTAL MARK</label>
             <input
               ref={totalMarkInputRef}
               type="number"
@@ -379,8 +395,8 @@ export default function MarksPage() {
               value={totalMark}
               onChange={(e) => setTotalMark(e.target.value)}
               disabled={!selectedSubject}
-              placeholder="e.g. 100, 50"
-              className="w-full px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+              placeholder="100"
+              className="w-full px-4 py-2.5 text-xs font-bold uppercase tracking-wider bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
             />
           </div>
         </div>
@@ -395,22 +411,22 @@ export default function MarksPage() {
             </div>
             <div>
               <h3 className="text-sm font-extrabold text-amber-950">
-                Enter Total Mark for &ldquo;{examName}&rdquo;
+                ENTER TOTAL MARK FOR &ldquo;{examName.toUpperCase()}&rdquo;
               </h3>
               <p className="text-xs text-amber-800 font-semibold mt-0.5">
-                Specify if this exam is out of 100, 50, 20, etc. Student scores will be validated against this limit.
+                SPECIFY IF THIS EXAM IS OUT OF 100, 50, 20, ETC. STUDENT SCORES WILL BE VALIDATED AGAINST THIS LIMIT.
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-amber-200">
-            <span className="text-xs font-bold text-slate-700">Out of:</span>
+            <span className="text-xs font-bold text-slate-700">OUT OF:</span>
             <input
               type="number"
               min="1"
               value={totalMark}
               onChange={(e) => setTotalMark(e.target.value)}
               className="w-16 text-center font-extrabold text-slate-950 bg-slate-50 border border-slate-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 py-1 text-sm"
-              placeholder="e.g. 50"
+              placeholder="E.G. 50"
             />
           </div>
         </div>
@@ -423,11 +439,11 @@ export default function MarksPage() {
             <span className="text-lg">📝</span>
           </div>
           <div>
-            <p className="text-sm font-medium text-blue-900">
-              {selectedSubjectObj.name} — {examName} — {selectedClass}
+            <p className="text-sm font-bold text-blue-900 uppercase tracking-wider">
+              {selectedSubjectObj.name.toUpperCase()} — {examName.toUpperCase()} — {selectedClass.toUpperCase()}
             </p>
-            <p className="text-xs text-blue-600 mt-0.5">
-              {filledCount} of {students.length} scores entered
+            <p className="text-xs text-blue-600 mt-0.5 uppercase tracking-wider font-semibold">
+              {filledCount} OF {students.length} SCORES ENTERED
             </p>
           </div>
         </div>
@@ -436,8 +452,8 @@ export default function MarksPage() {
       {/* Student Marks Table */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Student Scores
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+            STUDENT SCORES
             {selectedClass && <span className="text-blue-600"> — {selectedClass}</span>}
           </h2>
         </div>
@@ -458,15 +474,15 @@ export default function MarksPage() {
         {/* Empty: No class/subject/exam selected */}
         {!loadingStudents && (!selectedClass || !selectedSubject || !examName.trim()) && (
           <div className="py-16 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-50 flex items-center justify-center">
-              <span className="text-3xl">📊</span>
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-slate-50 flex items-center justify-center">
+              <img src="/logo.png" alt="Logo" className="w-9 h-9 object-contain" />
             </div>
-            <p className="text-slate-500 font-medium">
+            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">
               {!selectedClass
-                ? "Select a class to get started"
+                ? "SELECT A CLASS TO GET STARTED"
                 : !selectedSubject
-                ? "Select a subject"
-                : "Enter an exam name to load students"}
+                ? "SELECT A SUBJECT"
+                : "ENTER AN EXAM NAME TO LOAD STUDENTS"}
             </p>
           </div>
         )}
@@ -474,10 +490,10 @@ export default function MarksPage() {
         {/* Empty: No students found */}
         {!loadingStudents && selectedClass && selectedSubject && examName.trim() && students.length === 0 && (
           <div className="py-16 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-50 flex items-center justify-center">
-              <span className="text-3xl">👥</span>
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-slate-50 flex items-center justify-center">
+              <img src="/logo.png" alt="Logo" className="w-9 h-9 object-contain" />
             </div>
-            <p className="text-slate-500 font-medium">No students found</p>
+            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">NO STUDENTS FOUND</p>
           </div>
         )}
 
@@ -488,17 +504,17 @@ export default function MarksPage() {
             {isHYOrAnnual ? (
               <div className="hidden sm:flex items-center gap-4 px-6 py-3 bg-blue-600 text-white font-bold">
                 <div className="w-10" />
-                <div className="flex-1 text-xs font-bold uppercase tracking-wider text-left">Student Name</div>
-                <div className="w-32 text-xs font-bold uppercase tracking-wider text-center">Internal (20)</div>
-                <div className="w-32 text-xs font-bold uppercase tracking-wider text-center">Theory (80)</div>
-                <div className="w-32 text-xs font-bold uppercase tracking-wider text-center">Total (100)</div>
-                <div className="w-20 text-xs font-bold uppercase tracking-wider text-center">Grade</div>
+                <div className="flex-1 text-xs font-bold uppercase tracking-wider text-left">STUDENT NAME</div>
+                <div className="w-32 text-xs font-bold uppercase tracking-wider text-center">INTERNAL (20)</div>
+                <div className="w-32 text-xs font-bold uppercase tracking-wider text-center">THEORY (80)</div>
+                <div className="w-32 text-xs font-bold uppercase tracking-wider text-center">TOTAL (100)</div>
+                <div className="w-20 text-xs font-bold uppercase tracking-wider text-center">GRADE</div>
               </div>
             ) : (
               <div className="hidden sm:flex items-center gap-4 px-6 py-3 bg-blue-600 text-white font-bold">
                 <div className="w-10" />
-                <div className="flex-1 text-xs font-bold uppercase tracking-wider text-left">Student Name</div>
-                <div className="w-52 text-xs font-bold uppercase tracking-wider text-center">Score (Out of {totalMark || 100})</div>
+                <div className="flex-1 text-xs font-bold uppercase tracking-wider text-left">STUDENT NAME</div>
+                <div className="w-52 text-xs font-bold uppercase tracking-wider text-center">SCORE (OUT OF {totalMark || 100})</div>
               </div>
             )}
 
@@ -531,14 +547,14 @@ export default function MarksPage() {
 
                       {/* Name */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 truncate">{student.name || '—'}</p>
+                        <p className="text-sm font-semibold text-slate-900 truncate">{student.name?.toUpperCase() || '—'}</p>
                         <p className="text-sm font-semibold text-slate-700 sm:hidden">
-                          Int: <span className="font-extrabold text-slate-950">{internalScore || "—"}</span>/20 | 
-                          Thy: <span className="font-extrabold text-slate-950">{theoryScore || "—"}</span>/80 | 
-                          Tot: <span className="font-extrabold text-slate-950">{totalScore || "—"}</span>/100
+                          INT: <span className="font-extrabold text-slate-950">{internalScore || "—"}</span>/20 | 
+                          THY: <span className="font-extrabold text-slate-950">{theoryScore || "—"}</span>/80 | 
+                          TOT: <span className="font-extrabold text-slate-950">{totalScore || "—"}</span>/100
                           {totalScore !== "" && (
                             <span className="ml-1.5 text-xs font-black text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
-                              Grade: {grade}
+                              GRADE: {grade}
                             </span>
                           )}
                         </p>
@@ -605,12 +621,12 @@ export default function MarksPage() {
 
                       {/* Name */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 truncate">{student.name || '—'}</p>
+                        <p className="text-sm font-semibold text-slate-900 truncate">{student.name?.toUpperCase() || '—'}</p>
                         <p className="text-sm font-semibold text-slate-700 sm:hidden">
-                          Score: <span className="font-extrabold text-slate-950">{score || "—"}</span> / <span className="font-extrabold text-slate-950">{totalMark || 100}</span>
+                          SCORE: <span className="font-extrabold text-slate-950">{score || "—"}</span> / <span className="font-extrabold text-slate-950">{totalMark || 100}</span>
                           {score !== "" && isValid && (
                             <span className="ml-1.5 text-xs font-black text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
-                              Grade: {getGradeLetter(parseFloat(score), maxVal)}
+                              GRADE: {getGradeLetter(parseFloat(score), maxVal)}
                             </span>
                           )}
                         </p>
@@ -650,14 +666,14 @@ export default function MarksPage() {
       {/* Save Button */}
       {!loadingStudents && students.length > 0 && (
         <div className="mt-6 flex items-center justify-between bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-          <p className="text-sm text-slate-600">
-            <span className="font-medium text-slate-900">{filledCount}</span> of{" "}
-            <span className="font-medium text-slate-900">{students.length}</span> scores entered
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <span className="font-extrabold text-slate-900">{filledCount}</span> OF{" "}
+            <span className="font-extrabold text-slate-900">{students.length}</span> SCORES ENTERED
           </p>
           <button
             onClick={handleSave}
             disabled={saving || filledCount === 0}
-            className="px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+            className="px-6 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm uppercase tracking-wider"
           >
             {saving ? (
               <>
@@ -665,14 +681,14 @@ export default function MarksPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Saving...
+                SAVING...
               </>
             ) : (
               <>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                Save Marks
+                SAVE MARKS
               </>
             )}
           </button>

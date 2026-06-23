@@ -120,37 +120,37 @@ export default function AttendancePage() {
     <div className="p-6 lg:p-8 max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-1">Attendance</h1>
-        <p className="text-slate-500">Mark daily attendance for your students</p>
+        <h1 className="text-2xl lg:text-3xl font-semibold text-slate-900 mb-1 tracking-wider uppercase bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent">ATTENDANCE</h1>
+        <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">MARK DAILY ATTENDANCE FOR YOUR STUDENTS</p>
       </div>
 
       {/* Controls */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-6">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Class</label>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">CLASS</label>
             {loadingClasses ? (
               <div className="h-11 bg-slate-100 rounded-xl animate-pulse" />
             ) : (
               <select
                 value={selectedClass}
                 onChange={(e) => setSelectedClass(e.target.value)}
-                className="w-full px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                className="w-full px-4 py-2.5 text-xs font-bold uppercase tracking-wider bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               >
-                <option value="">Select a class</option>
+                <option value="">SELECT A CLASS</option>
                 {classes.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>{c?.toUpperCase()}</option>
                 ))}
               </select>
             )}
           </div>
           <div className="flex-1">
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Date</label>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">DATE</label>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full px-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              className="w-full px-4 py-2.5 text-xs font-bold uppercase tracking-wider bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
           </div>
         </div>
@@ -161,15 +161,15 @@ export default function AttendancePage() {
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 text-center">
             <p className="text-2xl font-bold text-slate-900">{students.length}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Total Students</p>
+            <p className="text-xs text-slate-500 mt-0.5 uppercase tracking-wider font-bold">TOTAL STUDENTS</p>
           </div>
           <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-4 text-center">
             <p className="text-2xl font-bold text-emerald-700">{presentCount}</p>
-            <p className="text-xs text-emerald-600 mt-0.5">Present</p>
+            <p className="text-xs text-emerald-600 mt-0.5 uppercase tracking-wider font-bold">PRESENT</p>
           </div>
           <div className="bg-red-50 rounded-2xl border border-red-200 p-4 text-center">
             <p className="text-2xl font-bold text-red-700">{absentCount}</p>
-            <p className="text-xs text-red-600 mt-0.5">Absent</p>
+            <p className="text-xs text-red-600 mt-0.5 uppercase tracking-wider font-bold">ABSENT</p>
           </div>
         </div>
       )}
@@ -178,22 +178,22 @@ export default function AttendancePage() {
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         {/* Table Header */}
         <div className="px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Students {selectedClass && <span className="text-blue-600">— {selectedClass}</span>}
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+            STUDENTS {selectedClass && <span className="text-blue-600">— {selectedClass}</span>}
           </h2>
           {students.length > 0 && !loadingStudents && (
             <div className="flex gap-2">
               <button
                 onClick={() => markAll("PRESENT")}
-                className="px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors"
+                className="px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors uppercase tracking-wider"
               >
-                Mark All Present
+                MARK ALL PRESENT
               </button>
               <button
                 onClick={() => markAll("ABSENT")}
-                className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                className="px-3 py-1.5 text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors uppercase tracking-wider"
               >
-                Mark All Absent
+                MARK ALL ABSENT
               </button>
             </div>
           )}
@@ -216,31 +216,31 @@ export default function AttendancePage() {
         {/* Empty State */}
         {!loadingStudents && classes.length === 0 && (
           <div className="py-16 text-center px-6">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 text-3xl border border-amber-200">
-              ⚠️
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-slate-50 flex items-center justify-center">
+              <img src="/logo.png" alt="Logo" className="w-9 h-9 object-contain" />
             </div>
-            <h3 className="text-sm font-semibold text-slate-800">No Class Teacher Assignment</h3>
-            <p className="text-slate-500 text-xs max-w-md mx-auto mt-2 leading-relaxed">
-              Daily attendance can only be marked by the designated Class Teacher. You are currently not assigned as a Class Teacher for any class.
+            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">NO CLASS TEACHER ASSIGNMENT</h3>
+            <p className="text-slate-500 text-xs max-w-md mx-auto mt-2 leading-relaxed uppercase font-semibold tracking-wide">
+              DAILY ATTENDANCE CAN ONLY BE MARKED BY THE DESIGNATED CLASS TEACHER. YOU ARE CURRENTLY NOT ASSIGNED AS A CLASS TEACHER FOR ANY CLASS.
             </p>
           </div>
         )}
 
         {!loadingStudents && classes.length > 0 && !selectedClass && (
           <div className="py-16 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-50 flex items-center justify-center">
-              <span className="text-3xl">📋</span>
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-slate-50 flex items-center justify-center">
+              <img src="/logo.png" alt="Logo" className="w-9 h-9 object-contain" />
             </div>
-            <p className="text-slate-500 font-medium">Select a class to view students</p>
+            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">SELECT A CLASS TO VIEW STUDENTS</p>
           </div>
         )}
 
         {!loadingStudents && selectedClass && students.length === 0 && (
           <div className="py-16 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-50 flex items-center justify-center">
-              <span className="text-3xl">👥</span>
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-slate-50 flex items-center justify-center">
+              <img src="/logo.png" alt="Logo" className="w-9 h-9 object-contain" />
             </div>
-            <p className="text-slate-500 font-medium">No students found in {selectedClass}</p>
+            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">NO STUDENTS FOUND IN {selectedClass}</p>
           </div>
         )}
 
@@ -263,8 +263,8 @@ export default function AttendancePage() {
 
                   {/* Name */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">{student.name || '—'}</p>
-                    <p className="text-xs text-slate-500">{student.className || selectedClass}</p>
+                    <p className="text-sm font-medium text-slate-900 truncate">{student.name?.toUpperCase() || '—'}</p>
+                    <p className="text-xs text-slate-500">{(student.className || selectedClass)?.toUpperCase()}</p>
                   </div>
 
                   {/* Status Badge */}
@@ -294,7 +294,7 @@ export default function AttendancePage() {
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
-                        <span className="hidden sm:inline">Present</span>
+                        <span className="hidden sm:inline">PRESENT</span>
                       </span>
                     </button>
                     <button
@@ -309,7 +309,7 @@ export default function AttendancePage() {
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                        <span className="hidden sm:inline">Absent</span>
+                        <span className="hidden sm:inline">ABSENT</span>
                       </span>
                     </button>
                   </div>
@@ -323,14 +323,14 @@ export default function AttendancePage() {
       {/* Save Button */}
       {!loadingStudents && students.length > 0 && (
         <div className="mt-6 flex items-center justify-between bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-          <p className="text-sm text-slate-600">
-            <span className="font-medium text-slate-900">{markedCount}</span> of{" "}
-            <span className="font-medium text-slate-900">{students.length}</span> students marked
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <span className="font-extrabold text-slate-900">{markedCount}</span> OF{" "}
+            <span className="font-extrabold text-slate-900">{students.length}</span> STUDENTS MARKED
           </p>
           <button
             onClick={handleSave}
             disabled={saving || markedCount === 0}
-            className="px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+            className="px-6 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm uppercase tracking-wider"
           >
             {saving ? (
               <>
@@ -338,14 +338,14 @@ export default function AttendancePage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Saving...
+                SAVING...
               </>
             ) : (
               <>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                Save Attendance
+                SAVE ATTENDANCE
               </>
             )}
           </button>

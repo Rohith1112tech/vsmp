@@ -36,7 +36,7 @@ export default function Modal({ isOpen, onClose, title, children, size = "md" })
     <div
       ref={overlayRef}
       onClick={handleOverlayClick}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-transparent backdrop-blur-sm"
       style={{ animation: "fadeIn 0.2s ease-out" }}
     >
       <div

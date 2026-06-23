@@ -343,7 +343,8 @@ router.get("/attendance", async (req, res) => {
  * Response: { message: "Attendance saved", count: N }
  */
 router.post("/attendance", async (req, res) => {
-  const { class_name, date, records } = req.body;
+  const { class_name, date, records, academic_year } = req.body;
+  const academicYearVal = academic_year || "2026-2027";
 
   // ── Input validation ────────────────────────────────────
   if (!class_name || !date || !Array.isArray(records) || records.length === 0) {
@@ -417,6 +418,7 @@ router.post("/attendance", async (req, res) => {
         studentId: record.student_id,
         date: attendanceDate,
         status: record.status,
+        academicYear: academicYearVal,
       },
     })
   );
@@ -446,7 +448,8 @@ router.post("/attendance", async (req, res) => {
  * }
  */
 router.get("/marks", async (req, res) => {
-  const { class_name, subject_id, exam_name } = req.query;
+  const { class_name, subject_id, exam_name, academic_year } = req.query;
+  const academicYearVal = academic_year || "2026-2027";
 
   if (!class_name || !subject_id || !exam_name) {
     return res.status(400).json({
@@ -489,7 +492,7 @@ router.get("/marks", async (req, res) => {
 
   // Fetch students with their marks for this subject + exam
   const students = await prisma.student.findMany({
-    where: { className: class_name },
+    where: { className: class_name, academicYear: academicYearVal },
     select: {
       id: true,
       name: true,
@@ -497,6 +500,7 @@ router.get("/marks", async (req, res) => {
         where: {
           subjectId: subjectIdInt,
           examName: exam_name,
+          academicYear: academicYearVal,
         },
         select: { id: true, score: true, examName: true, maxScore: true, internalScore: true, theoryScore: true },
       },
@@ -541,7 +545,8 @@ router.get("/marks", async (req, res) => {
  * Response: { message: "Marks saved", count: N }
  */
 router.post("/marks", async (req, res) => {
-  const { class_name, subject_id, exam_name, marks, total_mark } = req.body;
+  const { class_name, subject_id, exam_name, marks, total_mark, academic_year } = req.body;
+  const academicYearVal = academic_year || "2026-2027";
 
   // ── Input validation ────────────────────────────────────
   if (!class_name || subject_id === undefined || !exam_name || !Array.isArray(marks) || marks.length === 0) {
@@ -658,10 +663,11 @@ router.post("/marks", async (req, res) => {
 
     return prisma.mark.upsert({
       where: {
-        studentId_subjectId_examName: {
+        studentId_subjectId_examName_academicYear: {
           studentId: entry.student_id,
           subjectId: subjectIdInt,
           examName: examNameTrimmed,
+          academicYear: academicYearVal,
         },
       },
       update: {
@@ -680,6 +686,7 @@ router.post("/marks", async (req, res) => {
         examName: examNameTrimmed,
         internalScore: internalScoreVal,
         theoryScore: theoryScoreVal,
+        academicYear: academicYearVal,
       },
     });
   });
@@ -705,7 +712,8 @@ router.post("/marks", async (req, res) => {
  * Response: { exams: ["Term 1", "Mid-term", ...] }
  */
 router.get("/exams", async (req, res) => {
-  const { subject_id, class_name } = req.query;
+  const { subject_id, class_name, academic_year } = req.query;
+  const academicYearVal = academic_year || "2026-2027";
 
   if (!subject_id || !class_name) {
     return res.status(400).json({
@@ -739,7 +747,7 @@ router.get("/exams", async (req, res) => {
   // Find all students in the class, then query distinct exam names
   // from marks for those students and this subject
   const studentsInClass = await prisma.student.findMany({
-    where: { className: class_name },
+    where: { className: class_name, academicYear: academicYearVal },
     select: { id: true },
   });
 
@@ -751,6 +759,7 @@ router.get("/exams", async (req, res) => {
     where: {
       subjectId: subjectIdInt,
       studentId: { in: studentIds },
+      academicYear: academicYearVal,
     },
     orderBy: { examName: "asc" },
   });
@@ -866,8 +875,14 @@ router.get("/homework", async (req, res) => {
       return res.status(404).json({ error: "Teacher profile not found" });
     }
 
+    const academicYear = req.query.academic_year;
+    const where = { teacherId: teacher.id };
+    if (academicYear) {
+      where.academicYear = academicYear;
+    }
+
     const homeworks = await prisma.homework.findMany({
-      where: { teacherId: teacher.id },
+      where,
       include: {
         subject: {
           select: { id: true, name: true },
@@ -886,11 +901,11 @@ router.get("/homework", async (req, res) => {
 /**
  * POST /api/teacher/homework
  * Create a new homework record.
- * Body: { className, subjectId, title, description, dueDate }
+ * Body: { className, subjectId, title, description, dueDate, academic_year }
  */
 router.post("/homework", async (req, res) => {
   try {
-    const { className, subjectId, title, description, dueDate } = req.body;
+    const { className, subjectId, title, description, dueDate, academic_year } = req.body;
 
     if (!className || !subjectId || !title || !description || !dueDate) {
       return res.status(400).json({ error: "className, subjectId, title, description, and dueDate are required" });
@@ -920,6 +935,7 @@ router.post("/homework", async (req, res) => {
         title,
         description,
         dueDate: new Date(dueDate),
+        academicYear: academic_year || "2026-2027",
       },
     });
 
@@ -933,7 +949,7 @@ router.post("/homework", async (req, res) => {
 /**
  * PUT /api/teacher/homework/:id
  * Edit an existing homework record.
- * Body: { className, subjectId, title, description, dueDate }
+ * Body: { className, subjectId, title, description, dueDate, academic_year }
  */
 router.put("/homework/:id", async (req, res) => {
   try {
@@ -942,7 +958,7 @@ router.put("/homework/:id", async (req, res) => {
       return res.status(400).json({ error: "Invalid homework ID" });
     }
 
-    const { className, subjectId, title, description, dueDate } = req.body;
+    const { className, subjectId, title, description, dueDate, academic_year } = req.body;
     if (!className || !subjectId || !title || !description || !dueDate) {
       return res.status(400).json({ error: "className, subjectId, title, description, and dueDate are required" });
     }
@@ -976,15 +992,20 @@ router.put("/homework/:id", async (req, res) => {
       return res.status(403).json({ error: "You are not assigned to this class and subject combination" });
     }
 
+    const updateData = {
+      className,
+      subjectId: subjectIdInt,
+      title,
+      description,
+      dueDate: new Date(dueDate),
+    };
+    if (academic_year) {
+      updateData.academicYear = academic_year;
+    }
+
     const updatedHw = await prisma.homework.update({
       where: { id: homeworkId },
-      data: {
-        className,
-        subjectId: subjectIdInt,
-        title,
-        description,
-        dueDate: new Date(dueDate),
-      },
+      data: updateData,
     });
 
     res.json(updatedHw);

@@ -68,14 +68,14 @@ export default function TeacherAnnouncementsPage() {
   const columns = [
     {
       key: "title",
-      label: "Title",
+      label: "TITLE",
       render: (row) => (
         <div className="font-semibold text-slate-900">{row.title}</div>
       ),
     },
     {
       key: "content",
-      label: "Message",
+      label: "MESSAGE",
       render: (row) => (
         <div className="max-w-md truncate text-slate-600" title={row.content}>
           {row.content}
@@ -84,7 +84,7 @@ export default function TeacherAnnouncementsPage() {
     },
     {
       key: "createdAt",
-      label: "Date Received",
+      label: "DATE RECEIVED",
       render: (row) => (
         <span className="text-slate-500 text-xs">
           {new Date(row.createdAt).toLocaleDateString(undefined, {
@@ -100,64 +100,64 @@ export default function TeacherAnnouncementsPage() {
       {/* Header section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <span>📢</span> Announcements
+          <h1 className="text-2xl lg:text-3xl font-semibold text-slate-900 mb-1 tracking-wider uppercase bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent">
+            ANNOUNCEMENTS
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            View announcements sent to you, and post notices directly to parents.
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">
+            VIEW ANNOUNCEMENTS SENT TO YOU, AND POST NOTICES DIRECTLY TO PARENTS.
           </p>
         </div>
         <button
           onClick={openAddModal}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-sm shadow-blue-500/20 hover:shadow-blue-500/30"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-200 shadow-sm shadow-blue-500/20 hover:shadow-blue-500/30"
         >
-          <span>➕</span> Announce to Parents
+          ANNOUNCE TO PARENTS
         </button>
       </div>
 
       {/* Received Announcements Table */}
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
-        <h2 className="text-base font-bold text-slate-900">Incoming Notices</h2>
+        <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">INCOMING NOTICES</h2>
         <DataTable
           columns={columns}
           data={announcements}
           loading={loading}
-          emptyMessage="No announcements found."
+          emptyMessage="NO ANNOUNCEMENTS FOUND."
         />
       </div>
 
       {/* Post to Parents Modal */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Announce to Parents">
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="ANNOUNCE TO PARENTS">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-xs">
-            ℹ️ This announcement will be visible <strong>only to parents</strong> of all students.
+          <div className="p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-[10px] font-bold uppercase tracking-wider">
+            THIS ANNOUNCEMENT WILL BE VISIBLE ONLY TO PARENTS OF ALL STUDENTS.
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-              Title *
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              TITLE *
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. Special Holiday Announcement, School Dress Code"
+              placeholder="E.G. SPECIAL HOLIDAY ANNOUNCEMENT, SCHOOL DRESS CODE"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-              Message Content *
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              MESSAGE CONTENT *
             </label>
             <textarea
               required
               rows={5}
-              placeholder="Write the message details here..."
+              placeholder="WRITE THE MESSAGE DETAILS HERE..."
               value={form.content}
               onChange={(e) => setForm({ ...form, content: e.target.value })}
-              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
           </div>
 
@@ -165,16 +165,16 @@ export default function TeacherAnnouncementsPage() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              className="px-5 py-2.5 text-xs font-bold tracking-wider uppercase text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
             >
-              Cancel
+              CANCEL
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 shadow-sm disabled:opacity-50"
+              className="px-5 py-2.5 text-xs font-bold tracking-wider uppercase text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 shadow-sm disabled:opacity-50"
             >
-              {submitting ? "Posting..." : "Post Announcement"}
+              {submitting ? "POSTING..." : "POST ANNOUNCEMENT"}
             </button>
           </div>
         </form>

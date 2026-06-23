@@ -132,36 +132,36 @@ export default function AnnouncementsPage() {
   ];
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
-      {/* Header section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <span>📢</span> Announcements
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Create and manage school notices for teachers, parents, or both.
-          </p>
+    <>
+      <div className="p-6 lg:p-8 max-w-7xl mx-auto animate-fade-in">
+        {/* Header section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900 tracking-wider uppercase bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent">ANNOUNCEMENTS</h1>
+            <p className="text-slate-500 text-sm mt-1">
+              Create and manage school notices for teachers, parents, or both.
+            </p>
+          </div>
+          <button
+            onClick={openAddModal}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-200 shadow-sm shadow-blue-500/20 hover:shadow-blue-500/30"
+          >
+            POST ANNOUNCEMENT
+          </button>
         </div>
-        <button
-          onClick={openAddModal}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-sm shadow-blue-500/20 hover:shadow-blue-500/30"
-        >
-          <span>➕</span> Post Announcement
-        </button>
+
+        {/* Main announcements table */}
+        <DataTable
+          columns={columns}
+          data={announcements}
+          loading={loading}
+          onDelete={(row) => setDeleteTarget(row)}
+          emptyMessage="No announcements found. Click 'Post Announcement' to create one."
+        />
       </div>
 
-      {/* Main announcements table */}
-      <DataTable
-        columns={columns}
-        data={announcements}
-        loading={loading}
-        onDelete={(row) => setDeleteTarget(row)}
-        emptyMessage="No announcements found. Click 'Post Announcement' to create one."
-      />
-
       {/* Create Announcement Modal */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="New Announcement">
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="NEW ANNOUNCEMENT">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">
@@ -210,16 +210,16 @@ export default function AnnouncementsPage() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              className="px-4 py-2.5 text-xs font-bold tracking-wider uppercase text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
             >
-              Cancel
+              CANCEL
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 shadow-sm disabled:opacity-50"
+              className="px-4 py-2.5 text-xs font-bold tracking-wider uppercase text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 shadow-sm disabled:opacity-50"
             >
-              {submitting ? "Posting..." : "Post Announcement"}
+              {submitting ? "POSTING..." : "POST ANNOUNCEMENT"}
             </button>
           </div>
         </form>
@@ -228,12 +228,12 @@ export default function AnnouncementsPage() {
       {/* Confirm deletion dialog */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Delete Announcement"
+        title="DELETE ANNOUNCEMENT"
         message={`Are you sure you want to delete the announcement "${deleteTarget?.title}"? This cannot be undone.`}
-        confirmText="Delete"
+        confirmText="DELETE ANNOUNCEMENT"
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </>
   );
 }

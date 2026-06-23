@@ -10,14 +10,14 @@ import { apiClient } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 
 const NAV_ITEMS = [
-  { label: "Dashboard",       href: "/admin/dashboard",   icon: "📊" },
-  { label: "Teachers",        href: "/admin/teachers",    icon: "👩" },
-  { label: "Assign",          href: "/admin/assign",      icon: "📋" },
-  { label: "Students",        href: "/admin/students",    icon: "🎒" },
-  { label: "Record",  href: "/admin/student-record", icon: "📝" },
-  { label: "Announcements",   href: "/admin/announcements", icon: "📢" },
-  { label: "Classes",         href: "/admin/classes",     icon: "👥" },
-  { label: "Subjects",        href: "/admin/subjects",    icon: "📖" },
+  { label: "DASHBOARD",     href: "/admin/dashboard" },
+  { label: "TEACHERS",      href: "/admin/teachers" },
+  { label: "CLASS TEACHER", href: "/admin/assign" },
+  { label: "STUDENTS",      href: "/admin/students" },
+  { label: "RECORD",        href: "/admin/student-record" },
+  { label: "ANNOUNCEMENTS", href: "/admin/announcements" },
+  { label: "CLASSES",       href: "/admin/classes" },
+  { label: "SUBJECTS",      href: "/admin/subjects" },
 ];
 
 function AdminShell({ children }) {
@@ -29,6 +29,7 @@ function AdminShell({ children }) {
   // Admin Settings states
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [emailInput, setEmailInput] = useState("");
+  const [nameInput, setNameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
   const [updatingSettings, setUpdatingSettings] = useState(false);
@@ -36,6 +37,7 @@ function AdminShell({ children }) {
 
   function openSettings() {
     setEmailInput(user?.auth_identifier || "");
+    setNameInput(user?.name || "");
     setPasswordInput("");
     setConfirmPasswordInput("");
     setShowPassword(false);
@@ -88,14 +90,20 @@ function AdminShell({ children }) {
 
     try {
       setUpdatingSettings(true);
-      const payload = { email: emailInput.trim() };
+      const payload = { 
+        email: emailInput.trim(),
+        name: nameInput.trim()
+      };
       if (passwordInput) {
         payload.password = passwordInput;
       }
       
       await apiClient.put("/admin/profile", payload);
       
-      updateUser({ auth_identifier: emailInput.trim() });
+      updateUser({ 
+        auth_identifier: emailInput.trim(),
+        name: nameInput.trim()
+      });
       showToast("Profile settings updated successfully", "success");
       setSettingsModalOpen(false);
     } catch (err) {
@@ -124,22 +132,18 @@ function AdminShell({ children }) {
         {/* Logo */}
         <div className="p-6 border-b border-blue-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-              <span className="text-xl">🎓</span>
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+              <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-white tracking-tight">
-                SMP
-              </h1>
-              <p className="text-[10px] text-blue-300 font-medium uppercase tracking-widest">
-                Admin Portal
-              </p>
+              <h1 className="text-sm font-bold text-white tracking-tight">SMP</h1>
+              <p className="text-[10px] text-blue-300 font-medium uppercase tracking-widest">Admin Portal</p>
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
@@ -147,13 +151,12 @@ function AdminShell({ children }) {
                 key={item.href}
                 href={item.href}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wider transition-all duration-200 ${
                   isActive
                     ? "bg-white/10 text-white border-l-4 border-white -ml-px"
                     : "text-blue-200 hover:text-white hover:bg-white/5"
                 }`}
               >
-                <span className="text-base">{item.icon}</span>
                 <span>{item.label}</span>
               </Link>
             );
@@ -162,33 +165,26 @@ function AdminShell({ children }) {
 
         {/* User section */}
         <div className="p-4 border-t border-blue-800">
-          <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-9 h-9 rounded-full bg-blue-700 flex items-center justify-center text-sm font-bold text-white">
-              {(user?.auth_identifier || "A").charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">
-                {user?.auth_identifier || "Admin"}
-              </p>
-              <p className="text-[11px] text-blue-300 truncate">
-                Administrator
-              </p>
-            </div>
+          <div className="px-3 py-2">
+            <p className="text-xs font-medium text-white truncate tracking-wide">
+              {(user?.auth_identifier || "ADMIN").toUpperCase()}
+            </p>
+            <p className="text-[9px] text-blue-300 font-bold uppercase tracking-widest mt-0.5">
+              ADMINISTRATOR
+            </p>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <button
               onClick={openSettings}
-              className="flex items-center justify-center gap-2 px-3 py-2 text-xs text-blue-200 hover:text-white hover:bg-white/10 rounded-xl bg-white/5 transition-all duration-200"
+              className="flex items-center justify-center px-3 py-2 text-[10px] font-bold tracking-wider uppercase text-blue-200 hover:text-white hover:bg-white/10 rounded-xl bg-white/5 transition-all duration-200"
             >
-              <span>⚙️</span>
-              <span>Settings</span>
+              <span>SETTINGS</span>
             </button>
             <button
               onClick={logout}
-              className="flex items-center justify-center gap-2 px-3 py-2 text-xs text-blue-200 hover:text-white hover:bg-white/10 rounded-xl bg-white/5 transition-all duration-200"
+              className="flex items-center justify-center px-3 py-2 text-[10px] font-bold tracking-wider uppercase text-blue-200 hover:text-white hover:bg-white/10 rounded-xl bg-white/5 transition-all duration-200"
             >
-              <span>↩️</span>
-              <span>Sign Out</span>
+              <span>SIGN OUT</span>
             </button>
           </div>
         </div>
@@ -222,10 +218,24 @@ function AdminShell({ children }) {
       </main>
 
       {/* Admin Settings Modal */}
-      <Modal isOpen={settingsModalOpen} onClose={() => { setSettingsModalOpen(false); setShowPassword(false); }} title="Admin Settings">
+      <Modal isOpen={settingsModalOpen} onClose={() => { setSettingsModalOpen(false); setShowPassword(false); }} title="ADMIN SETTINGS">
         <form onSubmit={handleSaveSettings} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5 uppercase">
+              Full Name
+            </label>
+            <input
+              type="text"
+              placeholder=""
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5 uppercase">
               Email Address / Login ID
             </label>
             <input

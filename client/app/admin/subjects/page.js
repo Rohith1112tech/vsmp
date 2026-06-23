@@ -72,9 +72,9 @@ export default function SubjectsPage() {
   ];
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="p-6 lg:p-8 max-w-7xl mx-auto animate-fade-in">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Subjects</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 tracking-wider uppercase bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent">SUBJECTS</h1>
         <p className="text-slate-500 text-sm mt-1">
           Manage subjects offered at your school
         </p>
@@ -82,68 +82,28 @@ export default function SubjectsPage() {
 
       {/* Add Subject Form */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
-        <h2 className="text-base font-semibold text-slate-800 mb-4">
-          Add New Subject
+        <h2 className="text-sm font-bold tracking-wider uppercase text-slate-800 mb-4">
+          ADD NEW SUBJECT
         </h2>
         <form onSubmit={handleAddSubject} className="flex items-end gap-3">
           <div className="flex-1 max-w-md">
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Subject Name
+            <label className="block text-xs font-bold tracking-wider text-slate-700 uppercase mb-1.5">
+              SUBJECT NAME
             </label>
             <input
               type="text"
               value={newSubjectName}
-              onChange={(e) => setNewSubjectName(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="e.g. Mathematics, Science, English"
+              onChange={(e) => setNewSubjectName(e.target.value.toUpperCase())}
+              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
+              placeholder="E.G. MATHEMATICS, SCIENCE, ENGLISH"
             />
           </div>
           <button
             type="submit"
             disabled={adding}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl shadow-sm transition-colors disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold tracking-wider uppercase rounded-xl shadow-sm transition-colors disabled:opacity-50"
           >
-            {adding ? (
-              <>
-                <svg
-                  className="animate-spin w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
-                Adding...
-              </>
-            ) : (
-              <>
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                Add Subject
-              </>
-            )}
+            {adding ? "ADDING..." : "ADD SUBJECT"}
           </button>
         </form>
       </div>
@@ -166,15 +126,12 @@ export default function SubjectsPage() {
         </div>
       ) : subjects.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">📖</span>
-          </div>
-          <h3 className="text-lg font-semibold text-slate-800 mb-2">
-            No subjects yet
+          <h3 className="text-base font-semibold text-slate-800 mb-2 uppercase tracking-wide">
+            NO SUBJECTS YET
           </h3>
-          <p className="text-slate-500 text-sm max-w-sm mx-auto">
-            Add your first subject using the form above to get started with
-            subject management.
+          <p className="text-slate-500 text-xs max-w-sm mx-auto uppercase tracking-wide">
+            ADD YOUR FIRST SUBJECT USING THE FORM ABOVE TO GET STARTED WITH
+            SUBJECT MANAGEMENT.
           </p>
         </div>
       ) : (
@@ -184,22 +141,23 @@ export default function SubjectsPage() {
             return (
               <div
                 key={subject.id}
-                className={`${colors.bg} rounded-2xl border ${colors.border} p-5 hover:shadow-md transition-shadow group`}
+                className={`${colors.bg} rounded-xl border ${colors.border} p-4 hover:shadow-sm transition-shadow group`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <div
-                      className={`w-10 h-10 rounded-xl ${colors.icon} flex items-center justify-center`}
+                      className={`w-8 h-8 rounded-lg ${colors.icon} flex items-center justify-center text-xs font-bold uppercase flex-shrink-0`}
                     >
-                      <span className="text-lg">📖</span>
+                      {(subject.name || "?").charAt(0).toUpperCase()}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <h3
-                        className={`text-base font-semibold ${colors.text}`}
+                        className={`text-sm font-bold uppercase tracking-wide truncate ${colors.text}`}
+                        title={subject.name.toUpperCase()}
                       >
-                        {subject.name}
+                        {subject.name.toUpperCase()}
                       </h3>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-[10px] text-slate-400 font-medium">
                         ID: {subject.id}
                       </p>
                     </div>
@@ -233,8 +191,8 @@ export default function SubjectsPage() {
       {/* Total count */}
       {!loading && subjects.length > 0 && (
         <div className="mt-6 text-center">
-          <p className="text-sm text-slate-400">
-            {subjects.length} subject{subjects.length !== 1 ? "s" : ""} total
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            {subjects.length} SUBJECT{subjects.length !== 1 ? "S" : ""} TOTAL
           </p>
         </div>
       )}
@@ -244,9 +202,9 @@ export default function SubjectsPage() {
         isOpen={!!deleteTarget}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
-        title="Delete Subject"
-        message={`Are you sure you want to delete "${deleteTarget?.name}"? This may affect existing assignments.`}
-        confirmText="Delete"
+        title="DELETE SUBJECT"
+        message={`Are you sure you want to delete "${deleteTarget?.name?.toUpperCase()}"? This may affect existing assignments.`}
+        confirmText="DELETE SUBJECT"
         type="danger"
       />
     </div>

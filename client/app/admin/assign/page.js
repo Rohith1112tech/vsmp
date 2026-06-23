@@ -121,7 +121,7 @@ export default function AssignPage() {
     
     // If showAll is true (query is empty or exactly matches the selected teacher's full label), show all teachers
     const selectedTeacher = teachers.find(t => String(t.id) === form.teacher_id);
-    const showAll = !query || (selectedTeacher && teacherSearch === `${selectedTeacher.name} (${selectedTeacher.empId})`);
+    const showAll = !query || (selectedTeacher && teacherSearch === `${selectedTeacher.name.toUpperCase()} (${selectedTeacher.empId})`);
     
     if (showAll) {
       return [...teachers].sort((a, b) => a.name.localeCompare(b.name));
@@ -149,7 +149,7 @@ export default function AssignPage() {
   // Flatten nested objects to make the list flat and searchable inside DataTable
   const flattenedAssignments = assignments.map((a) => ({
     id: a.id,
-    teacherName: a.teacher?.name || "—",
+    teacherName: (a.teacher?.name || "—").toUpperCase(),
     teacherEmpId: a.teacher?.empId || "—",
     className: a.className || "—",
   }));
@@ -158,14 +158,14 @@ export default function AssignPage() {
   const columns = [
     {
       key: "teacherName",
-      label: "Class Teacher",
+      label: "CLASS TEACHER",
       render: (row) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold flex-shrink-0">
+          <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold flex-shrink-0 uppercase">
             {(row.teacherName || "?").charAt(0)}
           </div>
           <div>
-            <p className="font-semibold text-slate-900 leading-tight">{row.teacherName}</p>
+            <p className="font-semibold text-slate-900 leading-tight uppercase tracking-wide">{row.teacherName}</p>
             <p className="text-xs text-slate-500 font-mono mt-0.5">{row.teacherEmpId}</p>
           </div>
         </div>
@@ -173,51 +173,53 @@ export default function AssignPage() {
     },
     {
       key: "className",
-      label: "Assigned Class",
+      label: "ASSIGNED CLASS",
       render: (row) => (
-        <span className="inline-flex items-center px-3.5 py-1 rounded-xl bg-blue-50 text-blue-700 text-sm font-bold border border-blue-200">
-          🏫 Class {row.className}
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-xl bg-blue-50 text-blue-700 text-xs font-bold border border-blue-200">
+          🏫 CLASS {row.className?.toUpperCase()}
         </span>
       ),
     },
   ];
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-1">Class Teacher Assignments</h1>
-          <p className="text-slate-500 text-sm">Assign teachers as Class Teachers for school divisions</p>
+    <>
+      <div className="p-6 lg:p-8 max-w-7xl mx-auto animate-fade-in">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900 mb-1 tracking-wider uppercase bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent">CLASS TEACHER</h1>
+            <p className="text-slate-500 text-sm">Assign teachers as Class Teachers for school divisions</p>
+          </div>
+          <button
+            onClick={openAddModal}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold tracking-wider rounded-xl shadow-sm hover:shadow transition-all duration-200 uppercase"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            ASSIGN CLASS TEACHER
+          </button>
         </div>
-        <button
-          onClick={openAddModal}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl shadow-sm hover:shadow transition-all duration-200"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Assign Class Teacher
-        </button>
+
+        {/* DataTable */}
+        <DataTable
+          columns={columns}
+          data={flattenedAssignments}
+          loading={loading}
+          onDelete={(row) => setDeleteTarget(row)}
+          emptyMessage="No class teacher assignments found. Assign your first class teacher to get started."
+          searchable
+          searchPlaceholder="SEARCH BY TEACHER NAME, ID, OR CLASS..."
+        />
       </div>
 
-      {/* DataTable */}
-      <DataTable
-        columns={columns}
-        data={flattenedAssignments}
-        loading={loading}
-        onDelete={(row) => setDeleteTarget(row)}
-        emptyMessage="No class teacher assignments found. Assign your first class teacher to get started."
-        searchable
-        searchPlaceholder="Search by teacher name, ID, or class..."
-      />
-
       {/* Add Assignment Modal */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Assign Class Teacher">
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="ASSIGN CLASS TEACHER">
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Searchable Teacher Selection Dropdown */}
           <div className="relative">
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Select Teacher *</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5 uppercase">Select Teacher *</label>
             <div className="relative">
               <input
                 type="text"
@@ -277,7 +279,7 @@ export default function AssignPage() {
                         onMouseDown={(e) => {
                           e.preventDefault(); // Prevents input from losing focus
                           setForm(prev => ({ ...prev, teacher_id: String(t.id) }));
-                          setTeacherSearch(`${t.name} (${t.empId})`);
+                          setTeacherSearch(`${t.name.toUpperCase()} (${t.empId})`);
                           setTeacherDropdownOpen(false);
                         }}
                         className={`w-full px-4 py-2.5 text-left text-sm transition-colors flex justify-between items-center ${
@@ -285,7 +287,7 @@ export default function AssignPage() {
                         }`}
                       >
                         <div>
-                          <p className="font-semibold text-slate-800">{t.name}</p>
+                          <p className="font-semibold text-slate-800 uppercase">{t.name?.toUpperCase()}</p>
                           <p className="text-xs text-slate-400 font-mono mt-0.5">{t.empId}</p>
                         </div>
                         {isSelected && (
@@ -305,17 +307,17 @@ export default function AssignPage() {
 
           {/* Class Selection */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Select Class *</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5 uppercase">Select Class *</label>
             <select
               value={form.class_name}
               onChange={(e) => setForm({ ...form, class_name: e.target.value })}
-              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all uppercase font-semibold text-xs tracking-wider"
               required
             >
-              <option value="">Choose a class...</option>
+              <option value="">CHOOSE A CLASS...</option>
               {classes.map((c) => (
                 <option key={c.id} value={c.name}>
-                  {c.name}
+                  {c.name?.toUpperCase()}
                 </option>
               ))}
             </select>
@@ -326,16 +328,16 @@ export default function AssignPage() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              className="px-4 py-2.5 text-xs font-bold tracking-wider uppercase text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
             >
-              Cancel
+              CANCEL
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm transition-all duration-200 disabled:opacity-50"
+              className="px-5 py-2.5 text-xs font-bold tracking-wider uppercase text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm transition-all duration-200 disabled:opacity-50"
             >
-              {submitting ? "Assigning..." : "Assign Class Teacher"}
+              {submitting ? "ASSIGNING..." : "ASSIGN CLASS TEACHER"}
             </button>
           </div>
         </form>
@@ -344,14 +346,14 @@ export default function AssignPage() {
       {/* Delete Confirmation */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
+        onCancel={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
-        title="Remove Assignment"
-        message={`Are you sure you want to remove the assignment for ${deleteTarget?.teacherName} in Class ${deleteTarget?.className}?`}
-        confirmLabel="Remove Assignment"
-        cancelLabel="Cancel"
+        title="REMOVE ASSIGNMENT"
+        message={`Are you sure you want to remove the assignment for ${deleteTarget?.teacherName?.toUpperCase()} in CLASS ${deleteTarget?.className?.toUpperCase()}?`}
+        confirmLabel="REMOVE ASSIGNMENT"
+        cancelLabel="CANCEL"
         type="danger"
       />
-    </div>
+    </>
   );
 }

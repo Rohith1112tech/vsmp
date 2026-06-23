@@ -33,14 +33,14 @@ export default function ParentDashboard() {
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-1">My Children</h1>
-        <p className="text-slate-500">View your children&apos;s academic progress and attendance.</p>
+        <h1 className="text-2xl lg:text-3xl font-semibold text-slate-900 mb-1 tracking-wider uppercase bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 bg-clip-text text-transparent">MY CHILDREN</h1>
+        <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">VIEW YOUR CHILDREN&apos;S ACADEMIC PROGRESS AND ATTENDANCE.</p>
       </div>
 
       {/* Notice Board */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-8">
-        <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-          <span>📢</span> Notice Board
+        <h2 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-wider">
+          NOTICE BOARD
         </h2>
         {loading ? (
           <div className="space-y-3">
@@ -49,7 +49,7 @@ export default function ParentDashboard() {
             ))}
           </div>
         ) : announcements.length === 0 ? (
-          <p className="text-slate-500 text-sm py-4 text-center">No announcements at this time.</p>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider py-4 text-center">NO ANNOUNCEMENTS AT THIS TIME.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[350px] overflow-y-auto pr-1">
             {announcements.map((ann) => (
@@ -105,11 +105,11 @@ export default function ParentDashboard() {
               <div className="p-6 border-b border-slate-100">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl font-bold">
-                    {(child.name || '?').charAt(0)}
+                    {(child.name || '?').charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-900">{child.name || '—'}</h3>
-                    <p className="text-sm text-slate-500">Class: {child.className}</p>
+                    <h3 className="text-lg font-semibold text-slate-900">{child.name?.toUpperCase() || '—'}</h3>
+                    <p className="text-sm text-slate-500">CLASS: {child.className?.toUpperCase()}</p>
                   </div>
                 </div>
               </div>
@@ -123,31 +123,31 @@ export default function ParentDashboard() {
                         ? `${Number(child.attendanceSummary.percentage).toFixed(1)}%`
                         : "—"}
                     </p>
-                    <p className="text-xs text-emerald-600 mt-1">Attendance</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mt-1">ATTENDANCE</p>
                   </div>
                   <div className="text-center p-3 rounded-xl bg-blue-50">
                     <p className="text-2xl font-bold text-blue-700">
                       {child.attendanceSummary?.present ?? 0}
                     </p>
-                    <p className="text-xs text-blue-600 mt-1">Days Present</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-blue-600 mt-1">DAYS PRESENT</p>
                   </div>
                   <div className="text-center p-3 rounded-xl bg-purple-50">
                     <p className="text-2xl font-bold text-purple-700">
                       {child.marksCount ?? 0}
                     </p>
-                    <p className="text-xs text-purple-600 mt-1">Exams Taken</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-purple-600 mt-1">EXAMS TAKEN</p>
                   </div>
                 </div>
 
                 {/* Action Links */}
                 <div className="flex gap-3">
                   <Link href={`/parent/attendance?child=${child.id}`}
-                    className="flex-1 text-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors">
-                    📅 Attendance
+                    className="flex-1 text-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors">
+                    ATTENDANCE
                   </Link>
                   <Link href={`/parent/marks?child=${child.id}`}
-                    className="flex-1 text-center px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition-colors">
-                    📝 Marks
+                    className="flex-1 text-center px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider rounded-xl transition-colors">
+                    MARKS
                   </Link>
                 </div>
               </div>
