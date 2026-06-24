@@ -1,8 +1,47 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { apiClient } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
+
+const DEFAULT_SUBJECTS = [
+  "TAMIL",
+  "ENGLISH",
+  "MATHEMATICS",
+  "SCIENCE",
+  "SOCIAL STUDIES",
+  "COMPUTER SCIENCE",
+  "HINDI",
+  "ART & CRAFT",
+  "GENERAL INSTRUCTIONS"
+];
+
+const getUTCDateString = (dateInput) => {
+  const d = new Date(dateInput);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+};
+
+const formatGroupDate = (dateStr) => {
+  const d = new Date(dateStr);
+  const day = d.getUTCDate();
+  const month = d.getUTCMonth() + 1;
+  const year = d.getUTCFullYear();
+  const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const weekday = weekdays[d.getUTCDay()];
+  return `${day}-${month}-${year}(${weekday})`;
+};
+
+const getHomeworkForSubject = (homeworksList, subjectName) => {
+  return homeworksList.find((hw) => {
+    const name = hw.subject?.name?.toUpperCase() || "";
+    const target = subjectName.toUpperCase();
+    if (name === target) return true;
+    if (target === "MATHEMATICS" && (name === "MATHS" || name === "MATHEMATICS")) return true;
+    if (target === "COMPUTER SCIENCE" && (name === "CS" || name === "COMPUTER SCIENCE")) return true;
+    if (target === "SOCIAL STUDIES" && (name === "SOCIAL" || name === "SOCIAL STUDIES")) return true;
+    return false;
+  });
+};
 
 function ParentHomeworkContent() {
   const { showToast } = useToast();
@@ -41,27 +80,58 @@ function ParentHomeworkContent() {
       return false;
     }
     if (selectedDate) {
-      const hwDate = new Date(hw.createdAt).toISOString().split("T")[0];
+      const hwDate = getUTCDateString(hw.createdAt);
       return hwDate === selectedDate;
     }
     return true;
   });
 
+  // Group by Date and Class
+  const groupedHomeworks = useMemo(() => {
+    const groups = {};
+    filteredHomeworks.forEach((hw) => {
+      const dateStr = getUTCDateString(hw.createdAt);
+      const classStr = hw.className || "UNKNOWN";
+      const key = `${dateStr}_${classStr}`;
+      if (!groups[key]) {
+        groups[key] = {
+          date: dateStr,
+          className: classStr,
+          homeworks: [],
+        };
+      }
+      groups[key].homeworks.push(hw);
+    });
+    return Object.values(groups).sort((a, b) => {
+      const dateCompare = b.date.localeCompare(a.date);
+      if (dateCompare !== 0) return dateCompare;
+      return a.className.localeCompare(b.className);
+    });
+  }, [filteredHomeworks]);
 
-  const getDaysRemaining = (dueDateStr) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const due = new Date(dueDateStr);
-    due.setHours(0, 0, 0, 0);
-    
-    const diffTime = due - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) return { label: "OVERDUE", style: "bg-red-50 text-red-700 border-red-200" };
-    if (diffDays === 0) return { label: "DUE TODAY", style: "bg-amber-50 text-amber-700 border-amber-200" };
-    if (diffDays === 1) return { label: "DUE TOMORROW", style: "bg-blue-50 text-blue-700 border-blue-200" };
-    return { label: `DUE IN ${diffDays} DAYS`, style: "bg-emerald-50 text-emerald-700 border-emerald-200" };
-  };
+  // Dynamically merge standard subjects with any custom subject names present in homeworks list
+  const allSubjects = useMemo(() => {
+    const subjectsSet = new Set(DEFAULT_SUBJECTS);
+    homeworks.forEach((hw) => {
+      if (hw.subject?.name) {
+        const uppercaseName = hw.subject.name.toUpperCase();
+        if (uppercaseName === "MATHS" || uppercaseName === "MATHEMATICS") {
+          subjectsSet.add("MATHEMATICS");
+        } else if (uppercaseName === "CS" || uppercaseName === "COMPUTER SCIENCE") {
+          subjectsSet.add("COMPUTER SCIENCE");
+        } else if (uppercaseName === "SOCIAL" || uppercaseName === "SOCIAL STUDIES") {
+          subjectsSet.add("SOCIAL STUDIES");
+        } else {
+          subjectsSet.add(uppercaseName);
+        }
+      }
+    });
+    return Array.from(subjectsSet).sort((a, b) => {
+      if (a.includes("GENERAL")) return 1;
+      if (b.includes("GENERAL")) return -1;
+      return a.localeCompare(b);
+    });
+  }, [homeworks]);
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
@@ -179,57 +249,84 @@ function ParentHomeworkContent() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredHomeworks.map((hw) => {
-            const daysInfo = getDaysRemaining(hw.dueDate);
-
+        <div className="space-y-8">
+          {groupedHomeworks.map((group) => {
+            const groupKey = `${group.date}_${group.className}`;
             return (
               <div
-                key={hw.id}
-                className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-200 flex flex-col justify-between overflow-hidden"
+                key={groupKey}
+                className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
               >
-                {/* Card Top */}
-                <div className="p-6 space-y-4 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
-                      {hw.subject?.name?.toUpperCase() || "SUBJECT"}
-                    </span>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${daysInfo.style}`}>
-                      {daysInfo.label}
+                {/* Header matching image structure */}
+                <div className="flex flex-wrap items-center justify-between gap-4 p-5 bg-slate-50 border-b border-slate-200">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🏫</span>
+                    <span className="font-extrabold text-xs tracking-wider text-slate-700 uppercase">
+                      V-SCHOOL HOMEWORK
                     </span>
                   </div>
 
-                  <div className="space-y-2">
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">CLASS {hw.className?.toUpperCase()}</p>
+                  <div className="flex items-center gap-2.5">
+                    {/* Class Name (Cyan) */}
+                    <div className="bg-cyan-500 text-white font-extrabold text-[11px] px-3.5 py-1.5 rounded-lg shadow-sm tracking-widest uppercase">
+                      {group.className?.toUpperCase()}
                     </div>
-                    <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap font-normal">
-                      {hw.description}
-                    </p>
-                  </div>
 
-                  <div className="space-y-1.5 border-t border-slate-100 pt-3">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NOTEBOOK NEEDED</p>
-                    <div className="text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200/60 px-3 py-2 rounded-xl">
-                      {hw.title}
+                    {/* Date label & value (Yellow) */}
+                    <div className="flex items-center bg-yellow-400 text-slate-900 border border-yellow-500/20 rounded-lg shadow-sm overflow-hidden font-extrabold text-[11px] tracking-wider">
+                      <span className="px-3 py-1.5 bg-yellow-500/20 text-slate-900/80 border-r border-yellow-500/10">
+                        DATE
+                      </span>
+                      <span className="px-3 py-1.5">
+                        {formatGroupDate(group.date).toUpperCase()}
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Card Bottom Info */}
-                <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-col gap-2">
-                  <div className="flex items-center justify-between text-xs">
-                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      POSTED BY: <strong className="text-slate-700 font-bold">{hw.teacher?.name?.toUpperCase() || "TEACHER"}</strong>
-                    </span>
-                  </div>
-                  
+                {/* Table structure (neat box structure) */}
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-rose-50/40 text-slate-900 border-b border-slate-200 divide-x divide-slate-200">
+                        <th className="px-5 py-3 text-left text-xs font-extrabold uppercase tracking-wider w-1/4">
+                          SUBJECT
+                        </th>
+                        <th className="px-5 py-3 text-left text-xs font-extrabold uppercase tracking-wider w-1/2">
+                          HOMEWORK
+                        </th>
+                        <th className="px-5 py-3 text-left text-xs font-extrabold uppercase tracking-wider w-1/4">
+                          NOTEBOOKS
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 bg-white">
+                      {allSubjects.map((subject) => {
+                        const hw = getHomeworkForSubject(group.homeworks, subject);
+                        return (
+                          <tr
+                            key={subject}
+                            className="divide-x divide-slate-200 hover:bg-slate-50/30 transition-colors"
+                          >
+                            {/* Subject Name (Bold, CAPS) */}
+                            <td className="px-5 py-4 text-xs font-extrabold text-slate-900 uppercase tracking-wider bg-slate-50/20">
+                              {subject}
+                            </td>
 
+                            {/* Homework Description */}
+                            <td className="px-5 py-4 text-sm text-slate-700 whitespace-pre-wrap font-normal leading-relaxed">
+                              {hw ? hw.description : ""}
+                            </td>
 
-                  <div className="flex items-center justify-between text-[10px] mt-2 border-t border-slate-100/50 pt-2">
-                    <span className="font-bold uppercase tracking-wider text-slate-400">ASSIGNED: {new Date(hw.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" }).toUpperCase()}</span>
-                    <span className="font-bold uppercase tracking-wider text-slate-700">DUE: {new Date(hw.dueDate).toLocaleDateString(undefined, { dateStyle: "medium" }).toUpperCase()}</span>
-                  </div>
+                            {/* Notebooks needed */}
+                            <td className="px-5 py-4 text-xs font-bold text-slate-800 bg-slate-50/5">
+                              {hw ? hw.title?.toUpperCase() : ""}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             );
