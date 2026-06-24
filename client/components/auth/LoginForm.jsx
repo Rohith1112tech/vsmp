@@ -688,6 +688,9 @@ export default function LoginForm() {
       <p className="text-center text-[10px] font-bold text-slate-500 tracking-widest uppercase mt-6">
         SECURE LOGIN
       </p>
+      <p className="text-center text-[9px] text-slate-400 mt-2 font-medium">
+        Copyright © 2026 Turbonex . All rights reserved
+      </p>
     </div>
   );
 }
