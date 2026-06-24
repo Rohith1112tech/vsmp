@@ -4,18 +4,6 @@ import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { apiClient } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 
-const DEFAULT_SUBJECTS = [
-  "TAMIL",
-  "ENGLISH",
-  "MATHEMATICS",
-  "SCIENCE",
-  "SOCIAL STUDIES",
-  "COMPUTER SCIENCE",
-  "HINDI",
-  "ART & CRAFT",
-  "GENERAL INSTRUCTIONS"
-];
-
 const getUTCDateString = (dateInput) => {
   const d = new Date(dateInput);
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
@@ -29,18 +17,6 @@ const formatGroupDate = (dateStr) => {
   const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const weekday = weekdays[d.getUTCDay()];
   return `${day}-${month}-${year}(${weekday})`;
-};
-
-const getHomeworkForSubject = (homeworksList, subjectName) => {
-  return homeworksList.find((hw) => {
-    const name = hw.subject?.name?.toUpperCase() || "";
-    const target = subjectName.toUpperCase();
-    if (name === target) return true;
-    if (target === "MATHEMATICS" && (name === "MATHS" || name === "MATHEMATICS")) return true;
-    if (target === "COMPUTER SCIENCE" && (name === "CS" || name === "COMPUTER SCIENCE")) return true;
-    if (target === "SOCIAL STUDIES" && (name === "SOCIAL" || name === "SOCIAL STUDIES")) return true;
-    return false;
-  });
 };
 
 function ParentHomeworkContent() {
@@ -109,29 +85,7 @@ function ParentHomeworkContent() {
     });
   }, [filteredHomeworks]);
 
-  // Dynamically merge standard subjects with any custom subject names present in homeworks list
-  const allSubjects = useMemo(() => {
-    const subjectsSet = new Set(DEFAULT_SUBJECTS);
-    homeworks.forEach((hw) => {
-      if (hw.subject?.name) {
-        const uppercaseName = hw.subject.name.toUpperCase();
-        if (uppercaseName === "MATHS" || uppercaseName === "MATHEMATICS") {
-          subjectsSet.add("MATHEMATICS");
-        } else if (uppercaseName === "CS" || uppercaseName === "COMPUTER SCIENCE") {
-          subjectsSet.add("COMPUTER SCIENCE");
-        } else if (uppercaseName === "SOCIAL" || uppercaseName === "SOCIAL STUDIES") {
-          subjectsSet.add("SOCIAL STUDIES");
-        } else {
-          subjectsSet.add(uppercaseName);
-        }
-      }
-    });
-    return Array.from(subjectsSet).sort((a, b) => {
-      if (a.includes("GENERAL")) return 1;
-      if (b.includes("GENERAL")) return -1;
-      return a.localeCompare(b);
-    });
-  }, [homeworks]);
+
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
@@ -260,7 +214,6 @@ function ParentHomeworkContent() {
                 {/* Header matching image structure */}
                 <div className="flex flex-wrap items-center justify-between gap-4 p-5 bg-slate-50 border-b border-slate-200">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">🏫</span>
                     <span className="font-extrabold text-xs tracking-wider text-slate-700 uppercase">
                       V-SCHOOL HOMEWORK
                     </span>
@@ -301,26 +254,25 @@ function ParentHomeworkContent() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 bg-white">
-                      {allSubjects.map((subject) => {
-                        const hw = getHomeworkForSubject(group.homeworks, subject);
+                      {group.homeworks.map((hw) => {
                         return (
                           <tr
-                            key={subject}
+                            key={hw.id}
                             className="divide-x divide-slate-200 hover:bg-slate-50/30 transition-colors"
                           >
                             {/* Subject Name (Bold, CAPS) */}
                             <td className="px-5 py-4 text-xs font-extrabold text-slate-900 uppercase tracking-wider bg-slate-50/20">
-                              {subject}
+                              {hw.subject?.name?.toUpperCase()}
                             </td>
 
                             {/* Homework Description */}
                             <td className="px-5 py-4 text-sm text-slate-700 whitespace-pre-wrap font-normal leading-relaxed">
-                              {hw ? hw.description : ""}
+                              {hw.description}
                             </td>
 
                             {/* Notebooks needed */}
                             <td className="px-5 py-4 text-xs font-bold text-slate-800 bg-slate-50/5">
-                              {hw ? hw.title?.toUpperCase() : ""}
+                              {hw.title?.toUpperCase()}
                             </td>
                           </tr>
                         );
