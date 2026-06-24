@@ -23,15 +23,18 @@ export default function AttendancePage() {
   const [loadingClasses, setLoadingClasses] = useState(true);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isClassTeacher, setIsClassTeacher] = useState(false);
 
   // Load classes on mount
   useEffect(() => {
     async function loadClasses() {
       try {
         const res = await apiClient.get("/teacher/my-classes?role=CLASS_TEACHER");
-        setClasses(res.classes || []);
-        if (res.classes?.length > 0) {
-          setSelectedClass(res.classes[0]);
+        const list = res.classes || [];
+        setClasses(list);
+        setIsClassTeacher(list.length > 0);
+        if (list.length > 0) {
+          setSelectedClass(list[0]);
         }
       } catch (err) {
         showToast(err.data?.error || "Failed to load classes", "error");
@@ -115,6 +118,18 @@ export default function AttendancePage() {
   const markedCount = Object.values(statuses).filter(Boolean).length;
   const presentCount = Object.values(statuses).filter((s) => s === "PRESENT").length;
   const absentCount = Object.values(statuses).filter((s) => s === "ABSENT").length;
+
+  if (!loadingClasses && !isClassTeacher) {
+    return (
+      <div className="p-6 lg:p-8 max-w-5xl mx-auto text-center py-20 bg-white border border-slate-200 rounded-2xl shadow-sm my-10">
+        <span className="text-5xl block mb-4">⚠️</span>
+        <h3 className="text-lg font-bold text-slate-800 uppercase tracking-wider mb-2">RESTRICTED ACCESS</h3>
+        <p className="text-slate-500 text-sm font-medium uppercase tracking-wider">
+          THE ATTENDANCE TOOL IS RESTRICTED TO DESIGNATED CLASS TEACHERS ONLY. YOU CURRENTLY DO NOT HAVE ANY CLASS TEACHER ASSIGNMENTS.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 lg:p-8 max-w-5xl mx-auto">

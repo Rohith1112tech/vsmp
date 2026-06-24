@@ -147,15 +147,17 @@ export default function TeacherDashboard() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
-        <Link href="/teacher/attendance" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md hover:border-blue-200 transition-all group">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform"><span className="text-3xl">✅</span></div>
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">Mark Attendance</h3>
-              <p className="text-sm text-slate-500">Record daily student attendance for your classes</p>
+        {data?.assignments?.some((a) => a.role === "CLASS_TEACHER") && (
+          <Link href="/teacher/attendance" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md hover:border-blue-200 transition-all group">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform"><span className="text-3xl">✅</span></div>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">Mark Attendance</h3>
+                <p className="text-sm text-slate-500">Record daily student attendance for your classes</p>
+              </div>
             </div>
-          </div>
-        </Link>
+          </Link>
+        )}
         <Link href="/teacher/marks" className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md hover:border-blue-200 transition-all group">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform"><span className="text-3xl">📝</span></div>

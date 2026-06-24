@@ -254,7 +254,7 @@ function TeacherShell({ children }) {
 
         <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
-            if (item.label === "PROGRESS" && !isClassTeacher) return null;
+            if ((item.label === "PROGRESS" || item.label === "ATTENDANCE") && !isClassTeacher) return null;
             const isActive = pathname.startsWith(item.href);
             return (
               <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)}
