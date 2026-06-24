@@ -686,7 +686,7 @@ export default function LoginForm() {
 
       {/* Footer */}
       <p className="text-center text-[10px] font-bold text-slate-500 tracking-widest uppercase mt-6">
-        SECURE LOGIN POWERED BY JWT AUTHENTICATION
+        SECURE LOGIN
       </p>
     </div>
   );
