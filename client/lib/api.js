@@ -1,7 +1,11 @@
 // Dynamic Base URL selection
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== "undefined" && window.location.hostname === "localhost"
+const isLocalBrowser = typeof window !== "undefined" && 
+                       window.location.hostname === "localhost" && 
+                       !window.Capacitor;
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || (isLocalBrowser
   ? "http://localhost:5000/api"
-  : "https://smp-fptu.onrender.com/api"); // 🚀 Default fallback to your live Render backend
+  : "https://vsmp.onrender.com/api"); // 🚀 Live Render backend for mobile app and production
 
 async function request(endpoint, options = {}) {
   const url = `${BASE_URL}${endpoint}`;
